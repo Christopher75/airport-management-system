@@ -14,4 +14,7 @@ python manage.py collectstatic --no-input
 echo "==> Running database migrations..."
 python manage.py migrate --no-input
 
+echo "==> Creating superuser (if not exists)..."
+python manage.py create_superuser_from_env || true
+
 echo "==> Build complete!"
