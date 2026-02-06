@@ -1,0 +1,529 @@
+/* Custom CSS for NAIA Airport Management System */
+
+/* ============================================
+   Base Styles
+   ============================================ */
+
+/* Smooth scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Body background pattern */
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* ============================================
+   Animations
+   ============================================ */
+
+/* Fade in animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Slide up animation */
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.slide-up {
+    animation: slideUp 0.4s ease-out;
+}
+
+/* Pulse animation for loading states */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+/* Plane animation for hero section */
+@keyframes flyPlane {
+    0% {
+        transform: translateX(-100px) translateY(0);
+        opacity: 0;
+    }
+    20% {
+        opacity: 1;
+    }
+    80% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateX(100vw) translateY(-50px);
+        opacity: 0;
+    }
+}
+
+.flying-plane {
+    animation: flyPlane 8s linear infinite;
+}
+
+/* ============================================
+   Alert Messages
+   ============================================ */
+
+.alert-message {
+    animation: slideUp 0.3s ease-out;
+}
+
+/* Auto-dismiss alerts after 5 seconds */
+.alert-message.auto-dismiss {
+    animation: slideUp 0.3s ease-out, fadeOut 0.3s ease-in 4.7s forwards;
+}
+
+@keyframes fadeOut {
+    to {
+        opacity: 0;
+        transform: translateY(-10px);
+        visibility: hidden;
+    }
+}
+
+/* ============================================
+   Form Styles
+   ============================================ */
+
+/* Form input focus states */
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+    outline: none;
+    border-color: #006B3F;
+    box-shadow: 0 0 0 3px rgba(0, 107, 63, 0.1);
+}
+
+/* Custom checkbox styling */
+.form-checkbox:checked {
+    background-color: #006B3F;
+    border-color: #006B3F;
+}
+
+/* Form error states */
+.form-error {
+    border-color: #DC2626 !important;
+}
+
+.form-error-message {
+    color: #DC2626;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+/* ============================================
+   Button Styles
+   ============================================ */
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    border-radius: 0.5rem;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background-color: #006B3F;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #004D2D;
+}
+
+.btn-secondary {
+    background-color: #6B7280;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: #4B5563;
+}
+
+.btn-gold {
+    background-color: #FFD700;
+    color: #006B3F;
+}
+
+.btn-gold:hover {
+    background-color: #E6C200;
+}
+
+.btn-outline {
+    background-color: transparent;
+    border: 2px solid #006B3F;
+    color: #006B3F;
+}
+
+.btn-outline:hover {
+    background-color: #006B3F;
+    color: white;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ============================================
+   Card Styles
+   ============================================ */
+
+.card {
+    background-color: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.card-hover:hover {
+    transform: translateY(-2px);
+}
+
+/* ============================================
+   Flight Card Styles
+   ============================================ */
+
+.flight-card {
+    border-left: 4px solid #006B3F;
+}
+
+.flight-card.delayed {
+    border-left-color: #F59E0B;
+}
+
+.flight-card.cancelled {
+    border-left-color: #DC2626;
+}
+
+.flight-card.departed {
+    border-left-color: #6B7280;
+}
+
+/* Flight route visualization */
+.flight-route {
+    position: relative;
+}
+
+.flight-route::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(to right, #006B3F, #FFD700);
+    transform: translateY(-50%);
+    z-index: 0;
+}
+
+.flight-route .route-point {
+    position: relative;
+    z-index: 1;
+    background-color: white;
+    padding: 0 0.5rem;
+}
+
+/* ============================================
+   Booking Progress Indicator
+   ============================================ */
+
+.booking-progress {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+}
+
+.booking-progress::before {
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: #E5E7EB;
+    z-index: 0;
+}
+
+.booking-progress .step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+}
+
+.booking-progress .step .step-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #E5E7EB;
+    color: #6B7280;
+    font-weight: 600;
+}
+
+.booking-progress .step.active .step-circle {
+    background-color: #006B3F;
+    color: white;
+}
+
+.booking-progress .step.completed .step-circle {
+    background-color: #006B3F;
+    color: white;
+}
+
+.booking-progress .step.completed .step-circle::after {
+    content: '\f00c';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+}
+
+.booking-progress .step .step-label {
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    color: #6B7280;
+}
+
+.booking-progress .step.active .step-label {
+    color: #006B3F;
+    font-weight: 600;
+}
+
+/* ============================================
+   Seat Map Styles
+   ============================================ */
+
+.seat-map {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.seat {
+    width: 36px;
+    height: 36px;
+    border-radius: 6px 6px 10px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.seat.available {
+    background-color: #D1FAE5;
+    border: 2px solid #10B981;
+    color: #047857;
+}
+
+.seat.available:hover {
+    background-color: #10B981;
+    color: white;
+}
+
+.seat.selected {
+    background-color: #006B3F;
+    border: 2px solid #004D2D;
+    color: white;
+}
+
+.seat.occupied {
+    background-color: #E5E7EB;
+    border: 2px solid #9CA3AF;
+    color: #6B7280;
+    cursor: not-allowed;
+}
+
+.seat.blocked {
+    background-color: #FEE2E2;
+    border: 2px solid #F87171;
+    color: #DC2626;
+    cursor: not-allowed;
+}
+
+.seat.first-class {
+    background-color: #FEF3C7;
+    border: 2px solid #F59E0B;
+    color: #92400E;
+}
+
+.seat.business {
+    background-color: #DBEAFE;
+    border: 2px solid #3B82F6;
+    color: #1D4ED8;
+}
+
+/* ============================================
+   Price Display
+   ============================================ */
+
+.price-display {
+    font-family: 'Inter', monospace;
+}
+
+.price-currency {
+    font-size: 0.875em;
+    margin-right: 0.125rem;
+}
+
+.price-amount {
+    font-weight: 700;
+}
+
+.price-strikethrough {
+    text-decoration: line-through;
+    color: #9CA3AF;
+    font-size: 0.875em;
+}
+
+/* ============================================
+   Status Badges
+   ============================================ */
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-scheduled {
+    background-color: #DBEAFE;
+    color: #1D4ED8;
+}
+
+.status-boarding {
+    background-color: #D1FAE5;
+    color: #047857;
+}
+
+.status-departed {
+    background-color: #F3F4F6;
+    color: #4B5563;
+}
+
+.status-arrived {
+    background-color: #D1FAE5;
+    color: #047857;
+}
+
+.status-delayed {
+    background-color: #FEF3C7;
+    color: #92400E;
+}
+
+.status-cancelled {
+    background-color: #FEE2E2;
+    color: #DC2626;
+}
+
+.status-confirmed {
+    background-color: #D1FAE5;
+    color: #047857;
+}
+
+.status-pending {
+    background-color: #FEF3C7;
+    color: #92400E;
+}
+
+/* ============================================
+   Loading Spinner
+   ============================================ */
+
+.spinner {
+    border: 3px solid #E5E7EB;
+    border-top: 3px solid #006B3F;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ============================================
+   Responsive Utilities
+   ============================================ */
+
+@media (max-width: 640px) {
+    .mobile-full-width {
+        width: 100%;
+    }
+
+    .mobile-stack {
+        flex-direction: column;
+    }
+
+    .mobile-hide {
+        display: none;
+    }
+}
+
+/* ============================================
+   Print Styles (for e-tickets)
+   ============================================ */
+
+@media print {
+    .no-print {
+        display: none !important;
+    }
+
+    .print-only {
+        display: block !important;
+    }
+
+    body {
+        background: white !important;
+        color: black !important;
+    }
+
+    .card {
+        box-shadow: none !important;
+        border: 1px solid #ccc !important;
+    }
+}

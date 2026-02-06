@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Passenger Details - Booking{% endblock %}
+
+{% block content %}
+<!-- Progress -->
+{% include 'bookings/includes/booking_progress.html' with current_step=2 %}
+
+<div class="bg-gray-50 min-h-screen py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid lg:grid-cols-3 gap-8">
+            <!-- Main Content -->
+            <div class="lg:col-span-2">
+                <h1 class="text-2xl font-bold text-gray-900 mb-2">Passenger Details</h1>
+                <p class="text-gray-600 mb-6">Please enter details exactly as they appear on travel documents.</p>
+
+                <form method="post" action="{% url 'bookings:passengers' %}">
+                    {% csrf_token %}
+                    {{ formset.management_form }}
+
+                    {% for i in "123456789" %}
+                    {% with form=formset|slice:i|first idx=forloop.counter0 %}
+                    {% if idx < passenger_count %}
+                    <div class="bg-white rounded-xl shadow-md p-6 mb-6 passenger-form" data-passenger="{{ forloop.counter }}">
+                        <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                            <span class="w-8 h-8 bg-naia-green text-white rounded-full flex items-center justify-center mr-3 text-sm">
+                                {{ forloop.counter }}
+                            </span>
+                            Passenger {{ forloop.counter }}
+                            {% if forloop.first %}(Primary Contact){% endif %}
+                        </h2>
+
+                        <div class="grid md:grid-cols-3 gap-4 mb-4">
+                            <!-- Title -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Title *</label>
+                                <select name="passenger-{{ idx }}-title"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-naia-green focus:border-naia-green">
+                                    <option value="MR">Mr.</option>
+                                    <option value="MRS">Mrs.</option>
+                                    <option value="MS">Ms.</option>
+                                    <option value="DR">Dr.</option>
+                                    <option value="MSTR">Master</option>
+                                    <option value="MISS">Miss</option>
+                                </select>
+                            </div>
+
+                            <!-- First Name -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
+                                <input type="text" name="passenger-{{ idx }}-first_name" required
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-naia-green focus:border-naia-green"
+                                       placeholder="As on ID/Passport">
+                            </div>
+
+                            <!-- Last Name -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Last Name *</label>
+                                <input type="text" name="passenger-{{ idx }}-last_name" required
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-naia-green focus:border-naia-green"
+                                       placeholder="As on ID/Passport">
+                            </div>
+                        </div>
+
+                        <div class="grid md:grid-cols-2 gap-4 mb-4">
+                            <!-- Date of Birth -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Date of Birth *</label>
+                                <input type="date" name="passenger-{{ idx }}-date_of_birth" required
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-naia-green focus:border-naia-green">
+                            </div>
+
+                            <!-- Passenger Type -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Passenger Type *</label>
+                                <select name="passenger-{{ idx }}-passenger_type"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-naia-green focus:border-naia-green">
+                                    <option value="ADULT">Adult (12+)</option>
+                                    <option value="CHILD">Child (2-11)</option>
+                                    <option value="INFANT">Infant (0-2)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        {% if is_international %}
+                        <div class="border-t pt-4 mt-4">
+                            <h3 class="text-md font-medium text-gray-900 mb-4">
+                                <i class="fas fa-passport mr-2 text-naia-green"></i>
+                                Passport Details (Required for International Flights)
+                            </h3>
+
+                            <div class="grid md:grid-cols-2 gap-4 mb-4">
+                                <!-- Passport Number -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Passport Number *</label>
+                                    <input type="text" name="passenger-{{ idx }}-passport_number" required
+                                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-naia-green focus:border-naia-green"
+                                           placeholder="A12345678">
+                                </div>
+
+                                <!-- Passport Expiry -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Passport Expiry Date *</label>
+                                    <input type="date" name="passenger-{{ idx }}-passport_expiry" required
+                                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-naia-green focus:border-naia-green">
+                                </div>
+                            </div>
+
+                            <div class="grid md:grid-cols-2 gap-4">
+                                <!-- Passport Country -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Passport Issuing Country</label>
+                                    <input type="text" name="passenger-{{ idx }}-passport_country" value="Nigeria"
+                                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-naia-green focus:border-naia-green">
+                                </div>
+
+                                <!-- Nationality -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Nationality</label>
+                                    <input type="text" name="passenger-{{ idx }}-nationality" value="Nigerian"
+                                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-naia-green focus:border-naia-green">
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <!-- Hidden fields for domestic flights -->
+                        <input type="hidden" name="passenger-{{ idx }}-passport_number" value="">
+                        <input type="hidden" name="passenger-{{ idx }}-passport_expiry" value="">
+                        <input type="hidden" name="passenger-{{ idx }}-passport_country" value="Nigeria">
+                        <input type="hidden" name="passenger-{{ idx }}-nationality" value="Nigerian">
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    {% endwith %}
+                    {% endfor %}
+
+                    <!-- Contact Information -->
+                    <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+                        <h2 class="text-lg font-semibold text-gray-900 mb-4">
+                            <i class="fas fa-envelope mr-2 text-naia-green"></i>
+                            Contact Information
+                        </h2>
+                        <p class="text-sm text-gray-600 mb-4">
+                            We'll send your booking confirmation and flight updates to this email.
+                        </p>
+
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Email Address *</label>
+                                <input type="email" name="contact_email" required
+                                       value="{{ user.email }}"
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-naia-green focus:border-naia-green"
+                                       placeholder="email@example.com">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                                <input type="tel" name="contact_phone"
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-naia-green focus:border-naia-green"
+                                       placeholder="+234 XXX XXX XXXX">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Navigation -->
+                    <div class="flex justify-between items-center">
+                        <a href="{% url 'bookings:select_flight' flight.pk %}?seat_class={{ booking_data.seat_class }}&passengers={{ booking_data.passenger_count }}"
+                           class="text-gray-600 hover:text-gray-900">
+                            <i class="fas fa-arrow-left mr-2"></i>Back to Selection
+                        </a>
+                        <button type="submit"
+                                class="bg-naia-green text-white px-8 py-3 rounded-lg font-medium hover:bg-naia-green-dark transition">
+                            Continue to Review
+                            <i class="fas fa-arrow-right ml-2"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Price Summary Sidebar -->
+            <div class="lg:col-span-1">
+                {% include 'bookings/includes/price_summary.html' %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

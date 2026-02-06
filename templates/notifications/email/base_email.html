@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ site_name }}{% endblock %}</title>
+    <style>
+        /* Reset styles */
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            background-color: #f5f5f5;
+        }
+
+        /* Container */
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+
+        /* Header */
+        .email-header {
+            background: linear-gradient(135deg, #006400, #228B22);
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .email-header h1 {
+            color: #ffffff;
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .email-header .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #ffffff;
+            margin-bottom: 10px;
+        }
+
+        /* Content */
+        .email-content {
+            padding: 30px 25px;
+        }
+
+        .email-content h2 {
+            color: #006400;
+            margin-top: 0;
+            font-size: 22px;
+        }
+
+        .email-content p {
+            margin: 0 0 15px 0;
+            color: #555555;
+        }
+
+        /* Info box */
+        .info-box {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            color: #666666;
+            font-size: 14px;
+        }
+
+        .info-value {
+            color: #333333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        /* Flight card */
+        .flight-card {
+            background-color: #f0f8f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .flight-route {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 15px 0;
+        }
+
+        .airport-code {
+            font-size: 28px;
+            font-weight: bold;
+            color: #006400;
+        }
+
+        .airport-city {
+            font-size: 12px;
+            color: #666666;
+        }
+
+        .flight-arrow {
+            margin: 0 20px;
+            color: #006400;
+            font-size: 20px;
+        }
+
+        /* Button */
+        .btn {
+            display: inline-block;
+            background-color: #006400;
+            color: #ffffff !important;
+            text-decoration: none;
+            padding: 12px 30px;
+            border-radius: 6px;
+            font-weight: 600;
+            margin: 20px 0;
+        }
+
+        .btn:hover {
+            background-color: #228B22;
+        }
+
+        /* Footer */
+        .email-footer {
+            background-color: #f8f9fa;
+            padding: 25px;
+            text-align: center;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .email-footer p {
+            margin: 5px 0;
+            font-size: 12px;
+            color: #666666;
+        }
+
+        .email-footer a {
+            color: #006400;
+            text-decoration: none;
+        }
+
+        .social-links {
+            margin: 15px 0;
+        }
+
+        .social-links a {
+            margin: 0 10px;
+            color: #666666;
+            text-decoration: none;
+        }
+
+        /* Highlight */
+        .highlight {
+            color: #006400;
+            font-weight: 600;
+        }
+
+        /* Alert boxes */
+        .alert {
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+        }
+
+        .alert-info {
+            background-color: #e7f3ff;
+            border: 1px solid #b6d4fe;
+            color: #084298;
+        }
+
+        .alert-warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffecb5;
+            color: #664d03;
+        }
+
+        .alert-success {
+            background-color: #d1e7dd;
+            border: 1px solid #badbcc;
+            color: #0f5132;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="email-header">
+            <div class="logo">NAIA</div>
+            <h1>Nnamdi Azikiwe International Airport</h1>
+        </div>
+
+        <!-- Content -->
+        <div class="email-content">
+            {% block content %}{% endblock %}
+        </div>
+
+        <!-- Footer -->
+        <div class="email-footer">
+            <p><strong>{{ site_name }}</strong></p>
+            <p>Abuja, Nigeria</p>
+            <p>
+                Phone: {{ support_phone }} |
+                Email: <a href="mailto:{{ support_email }}">{{ support_email }}</a>
+            </p>
+
+            <div class="social-links">
+                <a href="#">Facebook</a> |
+                <a href="#">Twitter</a> |
+                <a href="#">Instagram</a>
+            </div>
+
+            <p style="margin-top: 20px;">
+                This email was sent to {{ user.email }}. If you didn't request this email,
+                please <a href="#">contact support</a>.
+            </p>
+
+            <p>&copy; {% now "Y" %} {{ site_name }}. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

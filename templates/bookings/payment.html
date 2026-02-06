@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Payment - Complete Booking{% endblock %}
+
+{% block content %}
+<!-- Progress -->
+{% include 'bookings/includes/booking_progress.html' with current_step=4 %}
+
+<div class="bg-gray-50 min-h-screen py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid lg:grid-cols-3 gap-8">
+            <!-- Main Content -->
+            <div class="lg:col-span-2">
+                <h1 class="text-2xl font-bold text-gray-900 mb-2">Complete Your Payment</h1>
+                <p class="text-gray-600 mb-6">Choose your preferred payment method to complete the booking.</p>
+
+                <!-- Payment Methods -->
+                <form method="post" action="{% url 'bookings:payment' %}" id="payment-form">
+                    {% csrf_token %}
+
+                    <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+                        <h2 class="text-lg font-semibold text-gray-900 mb-4">Payment Method</h2>
+
+                        <div class="space-y-4">
+                            <!-- Paystack (Real Payment - Test Mode) -->
+                            <label class="flex items-center p-4 border-2 rounded-lg cursor-pointer hover:bg-gray-50 payment-option"
+                                   data-method="paystack">
+                                <input type="radio" name="payment_method" value="paystack"
+                                       class="h-5 w-5 text-naia-green focus:ring-naia-green">
+                                <div class="ml-4 flex-1">
+                                    <div class="flex items-center">
+                                        <span class="font-medium text-gray-900">Pay with Paystack</span>
+                                        <span class="ml-2 px-2 py-1 bg-blue-500 text-white text-xs rounded">Test Mode</span>
+                                    </div>
+                                    <p class="text-sm text-gray-600">Use Paystack test cards to simulate payment</p>
+                                    <p class="text-xs text-blue-600 mt-1">
+                                        <i class="fas fa-info-circle mr-1"></i>
+                                        Test Card: 4084 0840 8408 4081, Expiry: any future date, CVV: 408
+                                    </p>
+                                </div>
+                                <img src="https://website-v3-assets.s3.amazonaws.com/assets/img/hero/Paystack-mark-white-twitter.png"
+                                     alt="Paystack" class="h-8 bg-blue-600 rounded p-1">
+                            </label>
+
+                            <!-- Demo Mode (Instant Success) -->
+                            <label class="flex items-center p-4 border-2 border-naia-green rounded-lg cursor-pointer bg-green-50 payment-option"
+                                   data-method="demo">
+                                <input type="radio" name="payment_method" value="demo" checked
+                                       class="h-5 w-5 text-naia-green focus:ring-naia-green">
+                                <div class="ml-4 flex-1">
+                                    <div class="flex items-center">
+                                        <span class="font-medium text-gray-900">Demo Payment</span>
+                                        <span class="ml-2 px-2 py-1 bg-naia-green text-white text-xs rounded">Recommended for Testing</span>
+                                    </div>
+                                    <p class="text-sm text-gray-600">Instantly confirm booking without real payment</p>
+                                </div>
+                                <i class="fas fa-bolt text-2xl text-naia-green"></i>
+                            </label>
+
+                            <!-- Card Payment (Via Paystack) -->
+                            <label class="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50 payment-option"
+                                   data-method="paystack">
+                                <input type="radio" name="payment_method" value="card"
+                                       class="h-5 w-5 text-naia-green focus:ring-naia-green">
+                                <div class="ml-4 flex-1">
+                                    <span class="font-medium text-gray-900">Debit/Credit Card</span>
+                                    <p class="text-sm text-gray-600">Visa, Mastercard, Verve (via Paystack)</p>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <i class="fab fa-cc-visa text-2xl text-blue-600"></i>
+                                    <i class="fab fa-cc-mastercard text-2xl text-red-500"></i>
+                                </div>
+                            </label>
+
+                            <!-- Bank Transfer (Via Paystack) -->
+                            <label class="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50 payment-option"
+                                   data-method="paystack">
+                                <input type="radio" name="payment_method" value="bank_transfer"
+                                       class="h-5 w-5 text-naia-green focus:ring-naia-green">
+                                <div class="ml-4 flex-1">
+                                    <span class="font-medium text-gray-900">Bank Transfer</span>
+                                    <p class="text-sm text-gray-600">Pay directly from your bank account</p>
+                                </div>
+                                <i class="fas fa-university text-2xl text-gray-500"></i>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Amount Summary -->
+                    <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+                        <h2 class="text-lg font-semibold text-gray-900 mb-4">Amount to Pay</h2>
+
+                        <div class="text-center py-6 bg-gray-50 rounded-lg">
+                            <p class="text-sm text-gray-500">Total Amount</p>
+                            <p class="text-4xl font-bold text-naia-green mt-2">
+                                NGN {{ total|floatformat:0 }}
+                            </p>
+                            <p class="text-sm text-gray-500 mt-2">
+                                {{ booking_data.passenger_count }} passenger{{ booking_data.passenger_count|pluralize }} |
+                                {{ booking_data.seat_class }} Class
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Security Notice -->
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                        <div class="flex items-start">
+                            <i class="fas fa-shield-alt text-blue-500 mt-1 mr-3"></i>
+                            <div>
+                                <h3 class="font-medium text-blue-900">Secure Payment</h3>
+                                <p class="text-sm text-blue-700">
+                                    Your payment is processed securely through Paystack. We do not store your card details.
+                                    All transactions are encrypted and PCI DSS compliant.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Paystack Info (shown when Paystack is selected) -->
+                    <div id="paystack-info" class="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6 hidden">
+                        <div class="flex items-start">
+                            <i class="fas fa-credit-card text-purple-500 mt-1 mr-3"></i>
+                            <div>
+                                <h3 class="font-medium text-purple-900">Paystack Test Mode</h3>
+                                <p class="text-sm text-purple-700 mb-2">
+                                    You will be redirected to Paystack's secure checkout page. Use these test credentials:
+                                </p>
+                                <ul class="text-sm text-purple-700 list-disc list-inside space-y-1">
+                                    <li><strong>Card Number:</strong> 4084 0840 8408 4081</li>
+                                    <li><strong>Expiry:</strong> Any future date (e.g., 12/25)</li>
+                                    <li><strong>CVV:</strong> 408</li>
+                                    <li><strong>PIN:</strong> 0000</li>
+                                    <li><strong>OTP:</strong> 123456</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Demo Info (shown when Demo is selected) -->
+                    <div id="demo-info" class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                        <div class="flex items-start">
+                            <i class="fas fa-info-circle text-yellow-500 mt-1 mr-3"></i>
+                            <div>
+                                <h3 class="font-medium text-yellow-900">Demo Mode</h3>
+                                <p class="text-sm text-yellow-700">
+                                    This will simulate a successful payment and create your booking instantly.
+                                    No actual payment will be processed. Perfect for testing the booking flow.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Navigation -->
+                    <div class="flex justify-between items-center">
+                        <a href="{% url 'bookings:review' %}" class="text-gray-600 hover:text-gray-900">
+                            <i class="fas fa-arrow-left mr-2"></i>Back to Review
+                        </a>
+                        <button type="submit" id="pay-button"
+                                class="bg-naia-green text-white px-8 py-3 rounded-lg font-medium hover:bg-naia-green-dark transition flex items-center">
+                            <i class="fas fa-lock mr-2"></i>
+                            <span id="pay-button-text">Pay NGN {{ total|floatformat:0 }}</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Price Summary Sidebar -->
+            <div class="lg:col-span-1">
+                {% include 'bookings/includes/price_summary.html' %}
+
+                <!-- Trust Badges -->
+                <div class="bg-white rounded-xl shadow-md p-6 mt-6">
+                    <h3 class="font-medium text-gray-900 mb-4">Why book with us?</h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-check-circle text-naia-green mr-2"></i>
+                            Instant confirmation
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-check-circle text-naia-green mr-2"></i>
+                            Secure payment via Paystack
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-check-circle text-naia-green mr-2"></i>
+                            24/7 customer support
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-check-circle text-naia-green mr-2"></i>
+                            Best price guarantee
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Accepted Cards -->
+                <div class="bg-white rounded-xl shadow-md p-6 mt-6">
+                    <h3 class="font-medium text-gray-900 mb-4">Accepted Payment Methods</h3>
+                    <div class="flex flex-wrap gap-3">
+                        <i class="fab fa-cc-visa text-3xl text-blue-600"></i>
+                        <i class="fab fa-cc-mastercard text-3xl text-red-500"></i>
+                        <img src="https://website-v3-assets.s3.amazonaws.com/assets/img/hero/Paystack-mark-white-twitter.png"
+                             alt="Paystack" class="h-8 bg-blue-600 rounded p-1">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const paymentOptions = document.querySelectorAll('input[name="payment_method"]');
+    const paystackInfo = document.getElementById('paystack-info');
+    const demoInfo = document.getElementById('demo-info');
+    const payButtonText = document.getElementById('pay-button-text');
+
+    function updateUI(value) {
+        // Update info boxes
+        if (value === 'demo') {
+            paystackInfo.classList.add('hidden');
+            demoInfo.classList.remove('hidden');
+            payButtonText.textContent = 'Complete Booking (Demo)';
+        } else {
+            paystackInfo.classList.remove('hidden');
+            demoInfo.classList.add('hidden');
+            payButtonText.textContent = 'Pay with Paystack';
+        }
+
+        // Update border styling
+        document.querySelectorAll('.payment-option').forEach(opt => {
+            opt.classList.remove('border-naia-green', 'bg-green-50', 'border-2');
+            opt.classList.add('border');
+        });
+
+        const selectedOption = document.querySelector(`input[value="${value}"]`).closest('.payment-option');
+        selectedOption.classList.remove('border');
+        selectedOption.classList.add('border-2', 'border-naia-green', 'bg-green-50');
+    }
+
+    paymentOptions.forEach(option => {
+        option.addEventListener('change', function() {
+            updateUI(this.value);
+        });
+    });
+
+    // Initialize UI
+    const checkedOption = document.querySelector('input[name="payment_method"]:checked');
+    if (checkedOption) {
+        updateUI(checkedOption.value);
+    }
+});
+</script>
+{% endblock %}

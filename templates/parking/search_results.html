@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Available Parking - NAIA{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <div class="bg-green-700 text-white py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h1 class="text-3xl font-bold mb-2">Available Parking</h1>
+            {% if check_in_date and check_out_date %}
+            <p class="text-green-100">
+                <i class="far fa-calendar-alt mr-2"></i>
+                {{ check_in_date }} - {{ check_out_date }}
+                {% if duration_hours %}
+                <span class="ml-4"><i class="far fa-clock mr-1"></i> {{ duration_hours|floatformat:1 }} hours</span>
+                {% endif %}
+            </p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="grid lg:grid-cols-4 gap-8">
+            <!-- Filters Sidebar -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-xl shadow-md p-6 sticky top-4">
+                    <h3 class="font-bold text-gray-800 mb-4">Refine Search</h3>
+                    <form action="{% url 'parking:search' %}" method="get">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Check-in</label>
+                                {{ form.check_in_date }}
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Check-out</label>
+                                {{ form.check_out_date }}
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Vehicle Type</label>
+                                {{ form.vehicle_type }}
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Parking Type</label>
+                                {{ form.zone_type }}
+                            </div>
+                            <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition">
+                                Update Search
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Results -->
+            <div class="lg:col-span-3">
+                {% if zones %}
+                <div class="mb-4 flex justify-between items-center">
+                    <p class="text-gray-600">
+                        Found <span class="font-semibold">{{ zones|length }}</span> parking zones
+                    </p>
+                </div>
+
+                <div class="space-y-4">
+                    {% for zone in zones %}
+                    <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition overflow-hidden">
+                        <div class="p-6">
+                            <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                                <!-- Zone Info -->
+                                <div class="flex-grow">
+                                    <div class="flex items-center gap-3 mb-2">
+                                        <h3 class="text-xl font-bold text-gray-800">{{ zone.name }}</h3>
+                                        <span class="px-2 py-1 text-xs rounded-full
+                                            {% if zone.zone_type == 'PREMIUM' %}bg-yellow-100 text-yellow-800
+                                            {% elif zone.zone_type == 'ECONOMY' %}bg-blue-100 text-blue-800
+                                            {% elif zone.zone_type == 'VALET' %}bg-purple-100 text-purple-800
+                                            {% else %}bg-green-100 text-green-800{% endif %}">
+                                            {{ zone.get_zone_type_display }}
+                                        </span>
+                                    </div>
+
+                                    <div class="flex flex-wrap gap-2 mb-3">
+                                        {% if zone.is_covered %}
+                                        <span class="text-sm text-gray-500"><i class="fas fa-umbrella mr-1 text-green-500"></i> Covered</span>
+                                        {% endif %}
+                                        {% if zone.has_cctv %}
+                                        <span class="text-sm text-gray-500"><i class="fas fa-video mr-1 text-green-500"></i> CCTV</span>
+                                        {% endif %}
+                                        {% if zone.has_security %}
+                                        <span class="text-sm text-gray-500"><i class="fas fa-shield-alt mr-1 text-green-500"></i> Security</span>
+                                        {% endif %}
+                                        {% if zone.has_shuttle %}
+                                        <span class="text-sm text-gray-500"><i class="fas fa-shuttle-van mr-1 text-green-500"></i> Shuttle</span>
+                                        {% endif %}
+                                        {% if zone.has_ev_charging %}
+                                        <span class="text-sm text-gray-500"><i class="fas fa-charging-station mr-1 text-green-500"></i> EV Charging</span>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="flex items-center gap-4 text-sm text-gray-600">
+                                        {% if zone.terminal %}
+                                        <span><i class="fas fa-building mr-1"></i> {{ zone.terminal }}</span>
+                                        {% endif %}
+                                        {% if zone.distance_to_terminal %}
+                                        <span><i class="fas fa-walking mr-1"></i> {{ zone.distance_to_terminal }}m</span>
+                                        {% endif %}
+                                        <span class="{% if zone.available_spots < 10 %}text-red-600{% else %}text-green-600{% endif %}">
+                                            <i class="fas fa-parking mr-1"></i> {{ zone.available_spots }} spots available
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- Price & Action -->
+                                <div class="mt-4 md:mt-0 md:ml-6 text-right">
+                                    {% if zone_prices and zone.id in zone_prices %}
+                                    <div class="text-2xl font-bold text-green-600">
+                                        ₦{{ zone_prices|get_item:zone.id|floatformat:0 }}
+                                    </div>
+                                    <p class="text-xs text-gray-500 mb-2">total (10% online discount)</p>
+                                    {% else %}
+                                    <div class="text-sm text-gray-500 mb-2">Price varies</div>
+                                    {% endif %}
+
+                                    <a href="{% url 'parking:create_reservation' %}?zone={{ zone.pk }}&check_in_date={{ check_in_date }}&check_out_date={{ check_out_date }}&vehicle_type={{ vehicle_type }}"
+                                       class="inline-block bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition">
+                                        Book Now
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="bg-white rounded-xl shadow-md p-12 text-center">
+                    <i class="fas fa-parking text-5xl text-gray-300 mb-4"></i>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">No Parking Available</h3>
+                    <p class="text-gray-600 mb-4">No parking zones match your search criteria. Try adjusting your filters.</p>
+                    <a href="{% url 'parking:home' %}" class="text-green-600 hover:underline">
+                        Back to Parking Home
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

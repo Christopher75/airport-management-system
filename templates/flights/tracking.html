@@ -1,0 +1,420 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Track Flight {{ flight.flight_number }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .flight-map {
+        height: 400px;
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        position: relative;
+        overflow: hidden;
+    }
+    .flight-path {
+        position: absolute;
+        top: 50%;
+        left: 10%;
+        right: 10%;
+        height: 4px;
+        background: linear-gradient(90deg, #00A651 0%, #00A651 {{ flight_progress }}%, #4b5563 {{ flight_progress }}%, #4b5563 100%);
+        border-radius: 2px;
+    }
+    .airport-marker {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        text-align: center;
+    }
+    .airport-marker.origin {
+        left: 10%;
+        transform: translate(-50%, -50%);
+    }
+    .airport-marker.destination {
+        right: 10%;
+        transform: translate(50%, -50%);
+    }
+    .plane-icon {
+        position: absolute;
+        top: 50%;
+        left: calc(10% + (80% * {{ flight_progress }} / 100));
+        transform: translate(-50%, -50%);
+        font-size: 2rem;
+        color: #00A651;
+        animation: fly 2s ease-in-out infinite;
+    }
+    @keyframes fly {
+        0%, 100% { transform: translate(-50%, -50%) rotate(0deg); }
+        50% { transform: translate(-50%, calc(-50% - 5px)) rotate(2deg); }
+    }
+    .timeline-item {
+        position: relative;
+        padding-left: 30px;
+    }
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: 10px;
+        top: 28px;
+        bottom: -20px;
+        width: 2px;
+        background: #4b5563;
+    }
+    .timeline-item:last-child::before {
+        display: none;
+    }
+    .timeline-dot {
+        position: absolute;
+        left: 0;
+        top: 6px;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+    }
+    .timeline-dot.completed {
+        background: #00A651;
+        color: white;
+    }
+    .timeline-dot.pending {
+        background: #4b5563;
+        color: #9ca3af;
+    }
+    .timeline-dot.current {
+        background: #f59e0b;
+        color: white;
+        animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+        50% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
+    }
+    .progress-bar {
+        height: 12px;
+        background: #4b5563;
+        border-radius: 6px;
+        overflow: hidden;
+    }
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #00A651, #10b981);
+        border-radius: 6px;
+        transition: width 1s ease;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen py-8">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-6">
+            <a href="{% url 'flights:status_board' %}" class="text-naia-green hover:underline mb-4 inline-block">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Flight Board
+            </a>
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">
+                        <i class="fas fa-plane text-naia-green mr-3"></i>
+                        {{ flight.flight_number }}
+                    </h1>
+                    <p class="text-gray-600">{{ flight.airline.name }}</p>
+                </div>
+                <div class="text-right">
+                    <span class="inline-block px-4 py-2 rounded-full text-sm font-semibold
+                        {% if flight.status == 'SCHEDULED' %}bg-gray-200 text-gray-700
+                        {% elif flight.status == 'CHECK_IN_OPEN' %}bg-green-100 text-green-700
+                        {% elif flight.status == 'BOARDING' %}bg-yellow-100 text-yellow-700
+                        {% elif flight.status == 'DEPARTED' or flight.status == 'IN_FLIGHT' %}bg-blue-100 text-blue-700
+                        {% elif flight.status == 'ARRIVED' or flight.status == 'LANDED' %}bg-green-100 text-green-700
+                        {% elif flight.status == 'DELAYED' %}bg-red-100 text-red-700
+                        {% elif flight.status == 'CANCELLED' %}bg-red-200 text-red-800
+                        {% else %}bg-gray-200 text-gray-700{% endif %}">
+                        {{ flight.get_status_display }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Flight Map Visualization -->
+        <div class="bg-gray-800 rounded-xl overflow-hidden shadow-xl mb-8">
+            <div class="flight-map">
+                <!-- Flight Path Line -->
+                <div class="flight-path"></div>
+
+                <!-- Origin Airport -->
+                <div class="airport-marker origin">
+                    <div class="w-16 h-16 bg-naia-green rounded-full flex items-center justify-center mx-auto mb-2">
+                        <span class="text-white font-bold text-lg">{{ flight.origin.code }}</span>
+                    </div>
+                    <span class="text-white font-medium">{{ flight.origin.city }}</span>
+                </div>
+
+                <!-- Plane Icon -->
+                {% if flight.status in 'DEPARTED,IN_FLIGHT' %}
+                <div class="plane-icon">
+                    <i class="fas fa-plane"></i>
+                </div>
+                {% endif %}
+
+                <!-- Destination Airport -->
+                <div class="airport-marker destination">
+                    <div class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-2">
+                        <span class="text-white font-bold text-lg">{{ flight.destination.code }}</span>
+                    </div>
+                    <span class="text-white font-medium">{{ flight.destination.city }}</span>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="p-6 bg-gray-700">
+                <div class="flex justify-between text-sm text-gray-300 mb-2">
+                    <span>Flight Progress</span>
+                    <span>{{ flight_progress }}%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {{ flight_progress }}%;"></div>
+                </div>
+                {% if time_remaining %}
+                <p class="text-center text-gray-400 mt-3">
+                    <i class="fas fa-clock mr-2"></i>Estimated time remaining: {{ time_remaining }}
+                </p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Flight Details -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                <div class="p-6 border-b bg-gray-50">
+                    <h2 class="text-lg font-semibold text-gray-900">
+                        <i class="fas fa-info-circle text-naia-green mr-2"></i>Flight Details
+                    </h2>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-sm text-gray-500">Departure</p>
+                            <p class="font-semibold text-gray-900">
+                                {{ flight.scheduled_departure|date:"D, M d, Y" }}
+                            </p>
+                            <p class="text-2xl font-bold text-naia-green">
+                                {{ flight.scheduled_departure|time:"H:i" }}
+                            </p>
+                            {% if flight.actual_departure %}
+                            <p class="text-sm text-yellow-600">
+                                Actual: {{ flight.actual_departure|time:"H:i" }}
+                            </p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Arrival</p>
+                            <p class="font-semibold text-gray-900">
+                                {{ flight.scheduled_arrival|date:"D, M d, Y" }}
+                            </p>
+                            <p class="text-2xl font-bold text-blue-600">
+                                {{ flight.scheduled_arrival|time:"H:i" }}
+                            </p>
+                            {% if flight.actual_arrival %}
+                            <p class="text-sm text-yellow-600">
+                                Actual: {{ flight.actual_arrival|time:"H:i" }}
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-sm text-gray-500">Duration</p>
+                            <p class="font-semibold text-gray-900">{{ flight.duration }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Aircraft</p>
+                            <p class="font-semibold text-gray-900">
+                                {% if flight.aircraft %}
+                                {{ flight.aircraft.model }}
+                                {% else %}
+                                Not assigned
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-sm text-gray-500">Departure Gate</p>
+                            <p class="font-semibold text-gray-900">
+                                {% if flight.departure_gate %}
+                                Terminal {{ flight.departure_gate.terminal }}, Gate {{ flight.departure_gate.gate_number }}
+                                {% else %}
+                                <span class="text-gray-400">To be announced</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Arrival Gate</p>
+                            <p class="font-semibold text-gray-900">
+                                {% if flight.arrival_gate %}
+                                Terminal {{ flight.arrival_gate.terminal }}, Gate {{ flight.arrival_gate.gate_number }}
+                                {% else %}
+                                <span class="text-gray-400">To be announced</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+
+                    {% if flight.delay_reason %}
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                        <p class="text-sm font-medium text-red-800">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>Delay Information
+                        </p>
+                        <p class="text-red-700 mt-1">{{ flight.delay_reason }}</p>
+                    </div>
+                    {% endif %}
+
+                    <!-- Amenities -->
+                    <div class="flex space-x-4 pt-4">
+                        {% if flight.meal_service %}
+                        <span class="inline-flex items-center text-sm text-gray-600">
+                            <i class="fas fa-utensils text-naia-green mr-2"></i>Meal Service
+                        </span>
+                        {% endif %}
+                        {% if flight.wifi_available %}
+                        <span class="inline-flex items-center text-sm text-gray-600">
+                            <i class="fas fa-wifi text-naia-green mr-2"></i>WiFi
+                        </span>
+                        {% endif %}
+                        {% if flight.is_international %}
+                        <span class="inline-flex items-center text-sm text-gray-600">
+                            <i class="fas fa-globe text-naia-green mr-2"></i>International
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Flight Status Timeline -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                <div class="p-6 border-b bg-gray-50">
+                    <h2 class="text-lg font-semibold text-gray-900">
+                        <i class="fas fa-history text-naia-green mr-2"></i>Flight Timeline
+                    </h2>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-6">
+                        {% for event in status_timeline %}
+                        <div class="timeline-item">
+                            <div class="timeline-dot {% if event.completed %}completed{% else %}pending{% endif %}">
+                                <i class="fas {{ event.icon }}"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="font-semibold text-gray-900">{{ event.status }}</p>
+                                {% if event.time %}
+                                <p class="text-sm text-gray-500">
+                                    {{ event.time|date:"H:i" }} - {{ event.time|date:"d M Y" }}
+                                </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Route Information -->
+        <div class="mt-8 bg-white rounded-xl shadow-md overflow-hidden">
+            <div class="p-6 border-b bg-gray-50">
+                <h2 class="text-lg font-semibold text-gray-900">
+                    <i class="fas fa-route text-naia-green mr-2"></i>Route Information
+                </h2>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Origin Airport -->
+                    <div class="border rounded-lg p-4">
+                        <div class="flex items-center mb-4">
+                            <div class="w-12 h-12 bg-naia-green rounded-full flex items-center justify-center mr-4">
+                                <i class="fas fa-plane-departure text-white"></i>
+                            </div>
+                            <div>
+                                <p class="font-bold text-gray-900">{{ flight.origin.name }}</p>
+                                <p class="text-sm text-gray-500">{{ flight.origin.city }}, {{ flight.origin.country }}</p>
+                            </div>
+                        </div>
+                        <div class="text-sm text-gray-600 space-y-1">
+                            <p><strong>IATA:</strong> {{ flight.origin.code }}</p>
+                            {% if flight.origin.icao_code %}
+                            <p><strong>ICAO:</strong> {{ flight.origin.icao_code }}</p>
+                            {% endif %}
+                            <p><strong>Timezone:</strong> {{ flight.origin.timezone }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Destination Airport -->
+                    <div class="border rounded-lg p-4">
+                        <div class="flex items-center mb-4">
+                            <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center mr-4">
+                                <i class="fas fa-plane-arrival text-white"></i>
+                            </div>
+                            <div>
+                                <p class="font-bold text-gray-900">{{ flight.destination.name }}</p>
+                                <p class="text-sm text-gray-500">{{ flight.destination.city }}, {{ flight.destination.country }}</p>
+                            </div>
+                        </div>
+                        <div class="text-sm text-gray-600 space-y-1">
+                            <p><strong>IATA:</strong> {{ flight.destination.code }}</p>
+                            {% if flight.destination.icao_code %}
+                            <p><strong>ICAO:</strong> {{ flight.destination.icao_code }}</p>
+                            {% endif %}
+                            <p><strong>Timezone:</strong> {{ flight.destination.timezone }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Book This Flight -->
+        {% if flight.is_bookable %}
+        <div class="mt-8 bg-naia-green rounded-xl p-6 text-center">
+            <h3 class="text-xl font-bold text-white mb-2">Book This Flight</h3>
+            <p class="text-green-100 mb-4">Seats available starting from NGN {{ flight.economy_price|floatformat:0 }}</p>
+            <a href="{% url 'bookings:select_flight' flight.pk %}"
+               class="inline-block bg-white text-naia-green px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition">
+                <i class="fas fa-ticket-alt mr-2"></i>Book Now
+            </a>
+        </div>
+        {% endif %}
+
+        <!-- Auto-refresh notice -->
+        <div class="mt-8 text-center text-gray-500 text-sm">
+            <i class="fas fa-sync-alt mr-1"></i>
+            Flight status auto-refreshes every 60 seconds
+            <span class="mx-2">|</span>
+            Last updated: <span id="last-updated">{{ current_time|time:"H:i:s" }}</span>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-refresh flight status every 60 seconds
+function refreshFlightStatus() {
+    fetch('{% url "flights:status_api_detail" flight.pk %}')
+        .then(response => response.json())
+        .then(data => {
+            console.log('Flight status updated:', data.status_display);
+            // In a full implementation, update the DOM with new data
+            document.getElementById('last-updated').textContent =
+                new Date().toLocaleTimeString('en-GB');
+        })
+        .catch(error => console.error('Error fetching flight status:', error));
+}
+
+setInterval(refreshFlightStatus, 60000);
+</script>
+{% endblock %}

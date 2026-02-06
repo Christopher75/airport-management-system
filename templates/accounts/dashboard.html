@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Welcome Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">
+                Welcome back, {{ user.first_name|default:"Traveler" }}!
+            </h1>
+            <p class="text-gray-600 mt-1">Here's an overview of your travel activity</p>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
+                        <i class="fas fa-ticket-alt text-blue-500 text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-2xl font-bold text-gray-900">{{ total_bookings }}</p>
+                        <p class="text-sm text-gray-500">Total Bookings</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-4">
+                        <i class="fas fa-check-circle text-green-500 text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-2xl font-bold text-gray-900">{{ completed_bookings }}</p>
+                        <p class="text-sm text-gray-500">Completed</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center mr-4">
+                        <i class="fas fa-star text-yellow-500 text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-2xl font-bold text-gray-900">{{ loyalty_points|default:"0" }}</p>
+                        <p class="text-sm text-gray-500">Loyalty Points</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mr-4">
+                        <i class="fas fa-crown text-purple-500 text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-2xl font-bold text-gray-900">{{ loyalty_tier }}</p>
+                        <p class="text-sm text-gray-500">Tier Status</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid lg:grid-cols-3 gap-8">
+            <!-- Main Content -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Upcoming Flights -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                    <div class="p-6 border-b flex justify-between items-center">
+                        <h2 class="text-lg font-semibold text-gray-900">
+                            <i class="fas fa-plane-departure text-naia-green mr-2"></i>
+                            Upcoming Flights
+                        </h2>
+                        <a href="{% url 'accounts:bookings' %}?period=upcoming" class="text-naia-green text-sm hover:underline">
+                            View all
+                        </a>
+                    </div>
+
+                    {% if upcoming_flights %}
+                    <div class="divide-y">
+                        {% for booking in upcoming_flights %}
+                        <a href="{% url 'accounts:booking_detail' booking.reference %}" class="block p-4 hover:bg-gray-50 transition">
+                            <div class="flex justify-between items-start">
+                                <div class="flex items-center">
+                                    <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mr-4">
+                                        <i class="fas fa-plane text-naia-green"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-900">
+                                            {{ booking.flight.origin.code }} <i class="fas fa-arrow-right text-xs mx-1"></i> {{ booking.flight.destination.code }}
+                                        </p>
+                                        <p class="text-sm text-gray-500">
+                                            {{ booking.flight.flight_number }} | {{ booking.flight.airline.name }}
+                                        </p>
+                                        <p class="text-sm text-gray-500">
+                                            {{ booking.flight.scheduled_departure|date:"D, M d" }} at {{ booking.flight.scheduled_departure|time:"H:i" }}
+                                        </p>
+                                    </div>
+                                </div>
+                                <span class="status-badge status-{{ booking.status|lower }}">
+                                    {{ booking.get_status_display }}
+                                </span>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="p-8 text-center">
+                        <i class="fas fa-plane text-4xl text-gray-300 mb-4"></i>
+                        <p class="text-gray-500 mb-4">No upcoming flights</p>
+                        <a href="{% url 'flights:search' %}" class="text-naia-green hover:underline">
+                            Book a flight
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Recent Bookings -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                    <div class="p-6 border-b flex justify-between items-center">
+                        <h2 class="text-lg font-semibold text-gray-900">
+                            <i class="fas fa-history text-naia-green mr-2"></i>
+                            Recent Bookings
+                        </h2>
+                        <a href="{% url 'accounts:bookings' %}" class="text-naia-green text-sm hover:underline">
+                            View all
+                        </a>
+                    </div>
+
+                    {% if recent_bookings %}
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reference</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Route</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y">
+                                {% for booking in recent_bookings %}
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4">
+                                        <a href="{% url 'accounts:booking_detail' booking.reference %}" class="font-medium text-naia-green hover:underline">
+                                            {{ booking.reference }}
+                                        </a>
+                                    </td>
+                                    <td class="px-6 py-4 text-gray-900">
+                                        {{ booking.flight.origin.code }} - {{ booking.flight.destination.code }}
+                                    </td>
+                                    <td class="px-6 py-4 text-gray-500">
+                                        {{ booking.flight.scheduled_departure|date:"M d, Y" }}
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <span class="status-badge status-{{ booking.status|lower }}">
+                                            {{ booking.get_status_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="p-8 text-center">
+                        <p class="text-gray-500">No bookings yet</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="space-y-6">
+                <!-- Profile Card -->
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <div class="text-center mb-4">
+                        {% if user.profile.avatar %}
+                        <img src="{{ user.profile.avatar.url }}" alt="Profile" class="w-20 h-20 rounded-full mx-auto mb-3 object-cover">
+                        {% else %}
+                        <div class="w-20 h-20 bg-naia-green rounded-full mx-auto mb-3 flex items-center justify-center">
+                            <span class="text-white text-2xl font-bold">
+                                {{ user.first_name|slice:":1"|upper }}{{ user.last_name|slice:":1"|upper }}
+                            </span>
+                        </div>
+                        {% endif %}
+                        <h3 class="font-semibold text-gray-900">{{ user.get_full_name }}</h3>
+                        <p class="text-sm text-gray-500">{{ user.email }}</p>
+                    </div>
+
+                    <!-- Profile Completion -->
+                    <div class="mb-4">
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="text-gray-600">Profile Completion</span>
+                            <span class="font-medium text-gray-900">{{ profile_completion }}%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-naia-green h-2 rounded-full" style="width: {{ profile_completion }}%"></div>
+                        </div>
+                    </div>
+
+                    <a href="{% url 'accounts:profile_edit' %}" class="block w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-lg text-center hover:bg-gray-200 transition">
+                        <i class="fas fa-edit mr-2"></i>Edit Profile
+                    </a>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <h3 class="font-semibold text-gray-900 mb-4">Quick Actions</h3>
+                    <div class="space-y-3">
+                        <a href="{% url 'flights:search' %}" class="flex items-center text-gray-700 hover:text-naia-green transition">
+                            <i class="fas fa-search w-8 text-gray-400"></i>
+                            <span>Search Flights</span>
+                        </a>
+                        <a href="{% url 'bookings:manage' %}" class="flex items-center text-gray-700 hover:text-naia-green transition">
+                            <i class="fas fa-edit w-8 text-gray-400"></i>
+                            <span>Manage Booking</span>
+                        </a>
+                        <a href="{% url 'accounts:bookings' %}" class="flex items-center text-gray-700 hover:text-naia-green transition">
+                            <i class="fas fa-ticket-alt w-8 text-gray-400"></i>
+                            <span>My Bookings</span>
+                        </a>
+                        <a href="{% url 'core:contact' %}" class="flex items-center text-gray-700 hover:text-naia-green transition">
+                            <i class="fas fa-headset w-8 text-gray-400"></i>
+                            <span>Contact Support</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Loyalty Status -->
+                <div class="bg-gradient-to-br from-naia-green to-naia-green-dark rounded-xl shadow-md p-6 text-white">
+                    <div class="flex items-center mb-4">
+                        <i class="fas fa-crown text-naia-gold text-2xl mr-3"></i>
+                        <div>
+                            <p class="text-white/80 text-sm">Loyalty Status</p>
+                            <p class="font-bold text-lg">{{ loyalty_tier }} Member</p>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="text-white/80 text-sm">Available Points</p>
+                            <p class="text-2xl font-bold">{{ loyalty_points|default:"0" }}</p>
+                        </div>
+                        <a href="#" class="text-naia-gold hover:underline text-sm">
+                            Learn more
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

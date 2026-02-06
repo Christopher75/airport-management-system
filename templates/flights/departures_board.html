@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Departures - {{ airport.code }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .status-board {
+        font-family: 'Roboto Mono', 'Courier New', monospace;
+    }
+    .board-header {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    }
+    .flight-row {
+        transition: all 0.3s ease;
+    }
+    .flight-row:hover {
+        background-color: rgba(0, 166, 81, 0.1);
+    }
+    .status-scheduled { color: #6b7280; }
+    .status-check_in_open { color: #10b981; }
+    .status-boarding { color: #f59e0b; animation: pulse 2s infinite; }
+    .status-gate_closed { color: #ef4444; }
+    .status-departed { color: #3b82f6; }
+    .status-delayed { color: #ef4444; animation: blink 1s infinite; }
+    .status-cancelled { color: #ef4444; text-decoration: line-through; }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.6; }
+    }
+    @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.3; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bg-gray-900 min-h-screen">
+    <!-- Header -->
+    <div class="board-header text-white py-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="flex items-center mb-4 md:mb-0">
+                    <i class="fas fa-plane-departure text-naia-green text-3xl mr-4"></i>
+                    <div>
+                        <h1 class="text-2xl font-bold">Departures</h1>
+                        <p class="text-gray-300">{{ airport.name }} ({{ airport.code }})</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="{% url 'flights:status_board' %}?airport={{ airport.code }}"
+                       class="bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-600">
+                        <i class="fas fa-th-large mr-2"></i>Full Board
+                    </a>
+                    <a href="{% url 'flights:arrivals' %}?airport={{ airport.code }}"
+                       class="bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-600">
+                        <i class="fas fa-plane-arrival mr-2"></i>Arrivals
+                    </a>
+                    <!-- Current Time -->
+                    <div class="text-right">
+                        <p class="text-sm text-gray-400">Local Time</p>
+                        <p id="current-time" class="text-2xl font-mono font-bold text-naia-green">
+                            {{ current_time|time:"H:i:s" }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Airport Selector -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div class="flex items-center space-x-4 mb-6">
+            <label class="text-gray-400">Airport:</label>
+            <select id="airport-select" onchange="changeAirport(this.value)"
+                    class="bg-gray-800 text-white px-4 py-2 rounded-lg border border-gray-600">
+                {% for apt in airports %}
+                <option value="{{ apt.code }}" {% if apt.code == airport.code %}selected{% endif %}>
+                    {{ apt.code }} - {{ apt.city }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Departures Table -->
+        <div class="status-board">
+            <div class="bg-gray-800 rounded-xl overflow-hidden shadow-2xl">
+                <!-- Table Header -->
+                <div class="bg-naia-green text-white text-sm font-semibold">
+                    <div class="grid grid-cols-12 gap-2 px-6 py-4">
+                        <div class="col-span-2">SCHEDULED</div>
+                        <div class="col-span-2">FLIGHT</div>
+                        <div class="col-span-2">AIRLINE</div>
+                        <div class="col-span-2">DESTINATION</div>
+                        <div class="col-span-1">GATE</div>
+                        <div class="col-span-2">STATUS</div>
+                        <div class="col-span-1 text-right">TRACK</div>
+                    </div>
+                </div>
+
+                <!-- Flight Rows -->
+                <div class="divide-y divide-gray-700">
+                    {% for flight in flights %}
+                    <div class="flight-row grid grid-cols-12 gap-2 px-6 py-4 text-white items-center">
+                        <div class="col-span-2">
+                            <span class="text-xl font-mono font-bold">
+                                {{ flight.scheduled_departure|time:"H:i" }}
+                            </span>
+                            <span class="block text-sm text-gray-400">
+                                {{ flight.scheduled_departure|date:"d M" }}
+                            </span>
+                        </div>
+                        <div class="col-span-2">
+                            <span class="font-bold text-lg text-naia-green">{{ flight.flight_number }}</span>
+                        </div>
+                        <div class="col-span-2">
+                            <span class="text-gray-300">{{ flight.airline.name }}</span>
+                        </div>
+                        <div class="col-span-2">
+                            <span class="font-bold">{{ flight.destination.code }}</span>
+                            <span class="block text-sm text-gray-400">{{ flight.destination.city }}</span>
+                        </div>
+                        <div class="col-span-1">
+                            {% if flight.departure_gate %}
+                            <span class="bg-gray-600 px-2 py-1 rounded font-mono font-bold text-sm">
+                                {{ flight.departure_gate.terminal }}{{ flight.departure_gate.gate_number }}
+                            </span>
+                            {% else %}
+                            <span class="text-gray-500">--</span>
+                            {% endif %}
+                        </div>
+                        <div class="col-span-2">
+                            <span class="status-{{ flight.status|lower }} font-semibold uppercase">
+                                {{ flight.get_status_display }}
+                            </span>
+                        </div>
+                        <div class="col-span-1 text-right">
+                            <a href="{% url 'flights:tracking' flight.pk %}"
+                               class="text-naia-green hover:text-naia-green-light">
+                                <i class="fas fa-location-arrow"></i>
+                            </a>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="px-6 py-12 text-center text-gray-400">
+                        <i class="fas fa-plane-slash text-4xl mb-4"></i>
+                        <p>No departures scheduled</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Auto-refresh notice -->
+        <div class="mt-4 text-center text-gray-500 text-sm">
+            <i class="fas fa-sync-alt mr-1"></i>
+            Auto-refreshes every 30 seconds
+        </div>
+    </div>
+</div>
+
+<script>
+function updateTime() {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('en-GB', {hour: '2-digit', minute: '2-digit', second: '2-digit'});
+    document.getElementById('current-time').textContent = timeStr;
+}
+setInterval(updateTime, 1000);
+
+function changeAirport(code) {
+    window.location.href = `{% url 'flights:departures' %}?airport=${code}`;
+}
+
+// Auto-refresh page every 30 seconds
+setTimeout(() => location.reload(), 30000);
+</script>
+{% endblock %}

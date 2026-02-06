@@ -1,0 +1,108 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | NAIA Admin{% endblock %}
+
+{% block branding %}
+<h1 id="site-name">
+    <a href="{% url 'admin:index' %}">
+        Nnamdi Azikiwe International Airport
+    </a>
+</h1>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* Custom Admin Styling */
+    :root {
+        --primary: #1a5f2a;
+        --primary-dark: #0d3d17;
+        --secondary: #ffffff;
+        --accent: #ffc107;
+    }
+
+    /* Header */
+    #header {
+        background: var(--primary);
+    }
+
+    #header a:link, #header a:visited {
+        color: var(--secondary);
+    }
+
+    #branding h1 {
+        color: var(--secondary);
+        font-weight: 600;
+    }
+
+    #branding h1 a:link, #branding h1 a:visited {
+        color: var(--secondary);
+    }
+
+    /* Breadcrumbs */
+    div.breadcrumbs {
+        background: var(--primary-dark);
+    }
+
+    div.breadcrumbs a {
+        color: var(--secondary);
+    }
+
+    /* Module headers */
+    .module h2, .module caption, .inline-group h2 {
+        background: var(--primary);
+    }
+
+    /* Buttons */
+    .submit-row input, a.button, input[type=submit], input[type=button], .button {
+        background: var(--primary);
+        border-color: var(--primary);
+    }
+
+    .submit-row input:hover, a.button:hover, input[type=submit]:hover, input[type=button]:hover, .button:hover {
+        background: var(--primary-dark);
+        border-color: var(--primary-dark);
+    }
+
+    /* Links */
+    a:link, a:visited {
+        color: var(--primary);
+    }
+
+    a:hover {
+        color: var(--primary-dark);
+    }
+
+    /* Delete button */
+    .deletelink {
+        background: #dc3545 !important;
+    }
+
+    /* Login page */
+    .login #header {
+        background: var(--primary);
+    }
+
+    /* Dashboard */
+    .dashboard .module table th {
+        background: var(--primary);
+    }
+
+    /* Footer */
+    #footer {
+        text-align: center;
+        padding: 20px;
+        color: #666;
+        font-size: 12px;
+    }
+</style>
+{% endblock %}
+
+{% block footer %}
+<div id="footer">
+    <p>Nnamdi Azikiwe International Airport Management System</p>
+    <p>Abuja, Nigeria | &copy; 2024 - Developed by Christopher Ishaku Danladi</p>
+</div>
+{% endblock %}

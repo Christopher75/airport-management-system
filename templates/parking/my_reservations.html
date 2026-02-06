@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Parking Reservations - NAIA{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <div class="bg-green-700 text-white py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <nav class="text-sm mb-2">
+                <a href="{% url 'parking:home' %}" class="text-green-200 hover:text-white">Parking</a>
+                <span class="mx-2">/</span>
+                <span>My Reservations</span>
+            </nav>
+            <h1 class="text-3xl font-bold">My Parking Reservations</h1>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-3 gap-4 mb-8">
+            <div class="bg-white rounded-xl shadow-md p-4 text-center">
+                <div class="text-3xl font-bold text-gray-800">{{ total_count }}</div>
+                <div class="text-sm text-gray-500">Total Reservations</div>
+            </div>
+            <div class="bg-white rounded-xl shadow-md p-4 text-center">
+                <div class="text-3xl font-bold text-green-600">{{ active_count }}</div>
+                <div class="text-sm text-gray-500">Active/Upcoming</div>
+            </div>
+            <div class="bg-white rounded-xl shadow-md p-4 text-center">
+                <div class="text-3xl font-bold text-gray-500">{{ completed_count }}</div>
+                <div class="text-sm text-gray-500">Completed</div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="bg-white rounded-xl shadow-md p-4 mb-6">
+            <form method="get" class="flex flex-wrap items-center gap-4">
+                <label class="text-sm font-medium text-gray-700">Filter by status:</label>
+                <select name="status" onchange="this.form.submit()"
+                        class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+                    <option value="">All Reservations</option>
+                    {% for value, label in status_choices %}
+                    <option value="{{ value }}" {% if current_status == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                {% if current_status %}
+                <a href="{% url 'parking:my_reservations' %}" class="text-sm text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times mr-1"></i> Clear filter
+                </a>
+                {% endif %}
+            </form>
+        </div>
+
+        <!-- Reservations List -->
+        {% if reservations %}
+        <div class="space-y-4">
+            {% for reservation in reservations %}
+            <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition overflow-hidden">
+                <div class="p-6">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                        <!-- Main Info -->
+                        <div class="flex-grow">
+                            <div class="flex items-center gap-3 mb-2">
+                                <span class="font-mono font-bold text-lg text-gray-800">{{ reservation.reservation_code }}</span>
+                                <span class="px-2 py-1 text-xs rounded-full
+                                    {% if reservation.status == 'CONFIRMED' %}bg-blue-100 text-blue-800
+                                    {% elif reservation.status == 'ACTIVE' %}bg-green-100 text-green-800
+                                    {% elif reservation.status == 'COMPLETED' %}bg-gray-100 text-gray-800
+                                    {% elif reservation.status == 'CANCELLED' %}bg-red-100 text-red-800
+                                    {% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                                    {{ reservation.get_status_display }}
+                                </span>
+                            </div>
+
+                            <div class="grid md:grid-cols-2 gap-x-8 gap-y-2 text-sm">
+                                <div class="flex items-center text-gray-600">
+                                    <i class="fas fa-parking w-6 text-green-600"></i>
+                                    <span>{{ reservation.zone.name }}</span>
+                                </div>
+                                <div class="flex items-center text-gray-600">
+                                    <i class="fas fa-car w-6 text-green-600"></i>
+                                    <span>{{ reservation.vehicle_registration }}</span>
+                                </div>
+                                <div class="flex items-center text-gray-600">
+                                    <i class="fas fa-calendar-alt w-6 text-green-600"></i>
+                                    <span>{{ reservation.check_in_date|date:"M d, Y H:i" }}</span>
+                                </div>
+                                <div class="flex items-center text-gray-600">
+                                    <i class="fas fa-clock w-6 text-green-600"></i>
+                                    <span>{{ reservation.get_duration_display }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Price & Action -->
+                        <div class="flex md:flex-col items-center md:items-end gap-4">
+                            <div class="text-right">
+                                <div class="text-2xl font-bold text-green-600">₦{{ reservation.total_price|floatformat:0 }}</div>
+                                {% if reservation.is_paid %}
+                                <span class="text-xs text-green-600"><i class="fas fa-check-circle mr-1"></i> Paid</span>
+                                {% else %}
+                                <span class="text-xs text-yellow-600"><i class="fas fa-exclamation-circle mr-1"></i> Unpaid</span>
+                                {% endif %}
+                            </div>
+                            <a href="{% url 'parking:reservation_detail' reservation.pk %}"
+                               class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm">
+                                View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                {% if reservation.is_overdue %}
+                <div class="bg-red-50 px-6 py-2 border-t border-red-200">
+                    <span class="text-red-600 text-sm">
+                        <i class="fas fa-exclamation-triangle mr-1"></i>
+                        This reservation is overdue for check-out
+                    </span>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <div class="mt-8 flex justify-center">
+            <nav class="flex items-center gap-2">
+                {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}{% if current_status %}&status={{ current_status }}{% endif %}"
+                   class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+                {% endif %}
+
+                <span class="px-4 py-2 text-gray-600">
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                </span>
+
+                {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if current_status %}&status={{ current_status }}{% endif %}"
+                   class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+                {% endif %}
+            </nav>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="bg-white rounded-xl shadow-md p-12 text-center">
+            <i class="fas fa-parking text-5xl text-gray-300 mb-4"></i>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">No Reservations Found</h3>
+            <p class="text-gray-600 mb-6">
+                {% if current_status %}
+                No reservations with status "{{ current_status }}".
+                {% else %}
+                You haven't made any parking reservations yet.
+                {% endif %}
+            </p>
+            <a href="{% url 'parking:home' %}" class="inline-block bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition">
+                Book Parking Now
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

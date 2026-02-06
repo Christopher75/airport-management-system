@@ -1,0 +1,268 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Contact Us{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="relative py-16">
+    <div class="absolute inset-0">
+        <img src="{% static 'images/airport.jpg' %}" alt="Airport" class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-gradient-to-r from-naia-green-dark/90 to-naia-green/75"></div>
+    </div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+        <h1 class="text-4xl font-bold text-white mb-4">Contact Us</h1>
+        <p class="text-xl text-white/90 max-w-2xl mx-auto">
+            Have questions or need assistance? We're here to help you with your travel needs.
+        </p>
+    </div>
+</section>
+
+<!-- Contact Section -->
+<section class="py-16 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid lg:grid-cols-3 gap-12">
+            <!-- Contact Info Cards -->
+            <div class="space-y-6">
+                <!-- General Inquiries -->
+                <div class="bg-white rounded-xl p-6 shadow-md">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-naia-green/10 rounded-lg flex items-center justify-center mr-4">
+                            <i class="fas fa-info-circle text-xl text-naia-green"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900">General Inquiries</h3>
+                    </div>
+                    <p class="text-gray-600 mb-3">For general information about the airport and services.</p>
+                    <p class="text-naia-green font-medium">cd121012@students.cavendish.ac.ug</p>
+                    <p class="text-gray-600">+234 (0) 9-0642-72847</p>
+                </div>
+
+                <!-- Flight Information -->
+                <div class="bg-white rounded-xl p-6 shadow-md">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
+                            <i class="fas fa-plane text-xl text-blue-600"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900">Flight Information</h3>
+                    </div>
+                    <p class="text-gray-600 mb-3">For real-time flight status and schedules.</p>
+                    <p class="text-blue-600 font-medium">flights@naia.ng</p>
+                    <p class="text-gray-600">+234 (0) 9-0642-72847</p>
+                </div>
+
+                <!-- Lost & Found -->
+                <div class="bg-white rounded-xl p-6 shadow-md">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center mr-4">
+                            <i class="fas fa-suitcase text-xl text-yellow-600"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900">Lost & Found</h3>
+                    </div>
+                    <p class="text-gray-600 mb-3">Report or claim lost items at the airport.</p>
+                    <p class="text-yellow-600 font-medium">lostandfound@naia.ng</p>
+                    <p class="text-gray-600">+234 (0) 9-0642-72847</p>
+                </div>
+
+                <!-- Emergency -->
+                <div class="bg-white rounded-xl p-6 shadow-md border-2 border-red-200">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mr-4">
+                            <i class="fas fa-exclamation-triangle text-xl text-red-600"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900">Emergency</h3>
+                    </div>
+                    <p class="text-gray-600 mb-3">For urgent matters requiring immediate attention.</p>
+                    <p class="text-red-600 font-bold text-xl">199</p>
+                    <p class="text-gray-500 text-sm">Available 24/7</p>
+                </div>
+            </div>
+
+            <!-- Contact Form -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-xl shadow-lg p-8">
+                    {% if success %}
+                    <div class="mb-6 bg-green-50 border border-green-200 rounded-lg p-4">
+                        <div class="flex items-center">
+                            <i class="fas fa-check-circle text-green-500 text-xl mr-3"></i>
+                            <div>
+                                <h4 class="font-medium text-green-800">Message Sent Successfully!</h4>
+                                <p class="text-green-600 text-sm">We'll get back to you as soon as possible.</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">Send Us a Message</h2>
+
+                    <form method="post" action="{% url 'core:contact' %}" class="space-y-6" data-validate>
+                        {% csrf_token %}
+
+                        {% if form.non_field_errors %}
+                        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                            {% for error in form.non_field_errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <!-- Name -->
+                            <div>
+                                <label for="id_name" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Full Name <span class="text-red-500">*</span>
+                                </label>
+                                {{ form.name }}
+                                {% for error in form.name.errors %}
+                                    <p class="form-error-message">{{ error }}</p>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Email -->
+                            <div>
+                                <label for="id_email" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Email Address <span class="text-red-500">*</span>
+                                </label>
+                                {{ form.email }}
+                                {% for error in form.email.errors %}
+                                    <p class="form-error-message">{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <!-- Phone -->
+                            <div>
+                                <label for="id_phone" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Phone Number
+                                </label>
+                                {{ form.phone }}
+                                {% for error in form.phone.errors %}
+                                    <p class="form-error-message">{{ error }}</p>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Subject -->
+                            <div>
+                                <label for="id_subject" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Subject <span class="text-red-500">*</span>
+                                </label>
+                                {{ form.subject }}
+                                {% for error in form.subject.errors %}
+                                    <p class="form-error-message">{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Message -->
+                        <div>
+                            <label for="id_message" class="block text-sm font-medium text-gray-700 mb-1">
+                                Message <span class="text-red-500">*</span>
+                            </label>
+                            {{ form.message }}
+                            {% for error in form.message.errors %}
+                                <p class="form-error-message">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="flex justify-end">
+                            <button type="submit"
+                                    class="bg-naia-green text-white px-8 py-3 rounded-lg font-medium hover:bg-naia-green-dark transition duration-200">
+                                <i class="fas fa-paper-plane mr-2"></i>
+                                Send Message
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Office Hours & Location -->
+<section class="py-16 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid md:grid-cols-2 gap-12">
+            <!-- Office Hours -->
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">Office Hours</h2>
+                <div class="bg-gray-50 rounded-xl p-6">
+                    <table class="w-full">
+                        <tbody>
+                            <tr class="border-b border-gray-200">
+                                <td class="py-3 text-gray-900 font-medium">Airport Operations</td>
+                                <td class="py-3 text-gray-600 text-right">24/7</td>
+                            </tr>
+                            <tr class="border-b border-gray-200">
+                                <td class="py-3 text-gray-900 font-medium">Customer Service</td>
+                                <td class="py-3 text-gray-600 text-right">24/7</td>
+                            </tr>
+                            <tr class="border-b border-gray-200">
+                                <td class="py-3 text-gray-900 font-medium">Administrative Offices</td>
+                                <td class="py-3 text-gray-600 text-right">Mon-Fri: 8AM - 5PM</td>
+                            </tr>
+                            <tr class="border-b border-gray-200">
+                                <td class="py-3 text-gray-900 font-medium">Information Desk</td>
+                                <td class="py-3 text-gray-600 text-right">24/7</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 text-gray-900 font-medium">Lost & Found</td>
+                                <td class="py-3 text-gray-600 text-right">6AM - 10PM Daily</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Location -->
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">Location</h2>
+                <div class="relative rounded-xl h-[300px] overflow-hidden">
+                    <img src="{% static 'images/terminal.jpg' %}" alt="Airport Terminal" class="w-full h-full object-cover">
+                    <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
+                        <p class="text-white font-medium"><i class="fas fa-map-marker-alt mr-1"></i> Airport Road, Abuja, FCT</p>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-start">
+                    <i class="fas fa-map-marker-alt text-naia-green mt-1 mr-3"></i>
+                    <p class="text-gray-600">
+                        Nnamdi Azikiwe International Airport<br>
+                        Airport Road<br>
+                        Abuja, Federal Capital Territory<br>
+                        Nigeria
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ Quick Links -->
+<section class="py-12 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-8">
+            <h2 class="text-2xl font-bold text-gray-900">Quick Help</h2>
+            <p class="text-gray-600">Find quick answers to common questions</p>
+        </div>
+
+        <div class="grid md:grid-cols-4 gap-4">
+            <a href="#" class="bg-white rounded-lg p-4 text-center hover:shadow-md transition">
+                <i class="fas fa-clock text-2xl text-naia-green mb-2"></i>
+                <p class="font-medium text-gray-900">Flight Status</p>
+            </a>
+            <a href="#" class="bg-white rounded-lg p-4 text-center hover:shadow-md transition">
+                <i class="fas fa-parking text-2xl text-naia-green mb-2"></i>
+                <p class="font-medium text-gray-900">Parking Info</p>
+            </a>
+            <a href="#" class="bg-white rounded-lg p-4 text-center hover:shadow-md transition">
+                <i class="fas fa-suitcase-rolling text-2xl text-naia-green mb-2"></i>
+                <p class="font-medium text-gray-900">Baggage Policy</p>
+            </a>
+            <a href="#" class="bg-white rounded-lg p-4 text-center hover:shadow-md transition">
+                <i class="fas fa-question-circle text-2xl text-naia-green mb-2"></i>
+                <p class="font-medium text-gray-900">FAQs</p>
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}

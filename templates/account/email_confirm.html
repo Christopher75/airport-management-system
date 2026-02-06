@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Confirm Email{% endblock %}
+
+{% block content %}
+<div class="min-h-[60vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full text-center">
+        {% if confirmation %}
+            <!-- Email confirmation page -->
+            <div class="bg-white shadow-lg rounded-xl p-8">
+                <div class="mb-6">
+                    <i class="fas fa-envelope-open text-naia-green text-6xl"></i>
+                </div>
+
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">
+                    Confirm Your Email
+                </h2>
+
+                <p class="text-gray-600 mb-6">
+                    Please confirm that <strong>{{ confirmation.email_address.email }}</strong>
+                    is an email address for user <strong>{{ user }}</strong>.
+                </p>
+
+                <form method="post" action="{% url 'account_confirm_email' confirmation.key %}">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="w-full bg-naia-green text-white py-3 px-4 rounded-lg font-medium hover:bg-naia-green-dark transition duration-200">
+                        <i class="fas fa-check mr-2"></i>
+                        Confirm Email Address
+                    </button>
+                </form>
+            </div>
+        {% else %}
+            <!-- Invalid or expired link -->
+            <div class="bg-white shadow-lg rounded-xl p-8">
+                <div class="mb-6">
+                    <i class="fas fa-exclamation-triangle text-yellow-500 text-6xl"></i>
+                </div>
+
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">
+                    Invalid Confirmation Link
+                </h2>
+
+                <p class="text-gray-600 mb-6">
+                    This email confirmation link has expired or is invalid.
+                    Please request a new confirmation email.
+                </p>
+
+                <a href="{% url 'account_email' %}"
+                   class="inline-block w-full bg-naia-green text-white py-3 px-4 rounded-lg font-medium hover:bg-naia-green-dark transition duration-200">
+                    <i class="fas fa-redo mr-2"></i>
+                    Request New Link
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

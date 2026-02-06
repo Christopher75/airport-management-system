@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Pay for Parking - NAIA{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <div class="bg-green-700 text-white py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <nav class="text-sm mb-2">
+                <a href="{% url 'parking:home' %}" class="text-green-200 hover:text-white">Parking</a>
+                <span class="mx-2">/</span>
+                <a href="{% url 'parking:my_reservations' %}" class="text-green-200 hover:text-white">My Reservations</a>
+                <span class="mx-2">/</span>
+                <span>Payment</span>
+            </nav>
+            <h1 class="text-3xl font-bold">Complete Payment</h1>
+        </div>
+    </div>
+
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="grid md:grid-cols-3 gap-8">
+            <!-- Payment Form -->
+            <div class="md:col-span-2">
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-6">Select Payment Method</h2>
+
+                    <form method="post" id="payment-form">
+                        {% csrf_token %}
+
+                        <!-- Payment Options -->
+                        <div class="space-y-4 mb-8">
+                            <!-- Demo Payment -->
+                            <label class="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-green-500 transition payment-option">
+                                <input type="radio" name="payment_method" value="demo" class="h-5 w-5 text-green-600" checked>
+                                <div class="ml-4 flex-grow">
+                                    <span class="font-semibold text-gray-800">Demo Payment</span>
+                                    <p class="text-sm text-gray-500">Instant confirmation for testing purposes</p>
+                                </div>
+                                <span class="px-3 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">Test Mode</span>
+                            </label>
+
+                            <!-- Card Payment -->
+                            <label class="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-green-500 transition payment-option">
+                                <input type="radio" name="payment_method" value="card" class="h-5 w-5 text-green-600">
+                                <div class="ml-4 flex-grow">
+                                    <span class="font-semibold text-gray-800">Card Payment</span>
+                                    <p class="text-sm text-gray-500">Pay securely with Visa, Mastercard, or Verve</p>
+                                </div>
+                                <div class="flex gap-2">
+                                    <i class="fab fa-cc-visa text-2xl text-blue-700"></i>
+                                    <i class="fab fa-cc-mastercard text-2xl text-red-500"></i>
+                                </div>
+                            </label>
+
+                            <!-- Bank Transfer -->
+                            <label class="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-green-500 transition payment-option">
+                                <input type="radio" name="payment_method" value="bank_transfer" class="h-5 w-5 text-green-600">
+                                <div class="ml-4 flex-grow">
+                                    <span class="font-semibold text-gray-800">Bank Transfer</span>
+                                    <p class="text-sm text-gray-500">Pay via bank transfer (Paystack)</p>
+                                </div>
+                                <i class="fas fa-university text-2xl text-gray-600"></i>
+                            </label>
+                        </div>
+
+                        <!-- Security Notice -->
+                        <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                            <div class="flex items-start">
+                                <i class="fas fa-shield-alt text-green-600 text-xl mr-3 mt-1"></i>
+                                <div>
+                                    <h4 class="font-semibold text-gray-800">Secure Payment</h4>
+                                    <p class="text-sm text-gray-600">
+                                        Your payment is processed securely through Paystack.
+                                        We do not store your card details on our servers.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Submit -->
+                        <div class="flex gap-4">
+                            <a href="{% url 'parking:reservation_detail' reservation.pk %}"
+                               class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
+                                Cancel
+                            </a>
+                            <button type="submit"
+                                    class="flex-grow bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition">
+                                <i class="fas fa-lock mr-2"></i>Pay ₦{{ reservation.total_price|floatformat:0 }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="md:col-span-1">
+                <div class="bg-white rounded-xl shadow-md p-6 sticky top-4">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Reservation Summary</h3>
+
+                    <div class="space-y-3 mb-4">
+                        <div>
+                            <p class="text-sm text-gray-500">Reservation Code</p>
+                            <p class="font-mono font-bold text-gray-800">{{ reservation.reservation_code }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Parking Zone</p>
+                            <p class="font-semibold text-gray-800">{{ reservation.zone.name }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Vehicle</p>
+                            <p class="font-semibold text-gray-800">{{ reservation.vehicle_registration }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Check-in</p>
+                            <p class="text-gray-800">{{ reservation.check_in_date|date:"M d, Y H:i" }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Check-out</p>
+                            <p class="text-gray-800">{{ reservation.check_out_date|date:"M d, Y H:i" }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Duration</p>
+                            <p class="text-gray-800">{{ reservation.get_duration_display }}</p>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <!-- Price Breakdown -->
+                    <div class="space-y-2 mb-4">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Base Price</span>
+                            <span class="text-gray-800">₦{{ reservation.base_price|floatformat:0 }}</span>
+                        </div>
+                        {% if reservation.discount_amount %}
+                        <div class="flex justify-between text-sm text-green-600">
+                            <span>Online Discount</span>
+                            <span>-₦{{ reservation.discount_amount|floatformat:0 }}</span>
+                        </div>
+                        {% endif %}
+                        {% if reservation.service_charges %}
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Services</span>
+                            <span class="text-gray-800">₦{{ reservation.service_charges|floatformat:0 }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="flex justify-between font-bold text-lg">
+                        <span class="text-gray-800">Total</span>
+                        <span class="text-green-600">₦{{ reservation.total_price|floatformat:0 }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.payment-option:has(input:checked) {
+    border-color: #16a34a;
+    background-color: #f0fdf4;
+}
+</style>
+{% endblock %}

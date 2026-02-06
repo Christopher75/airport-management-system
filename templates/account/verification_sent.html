@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Verify Your Email{% endblock %}
+
+{% block content %}
+<div class="min-h-[60vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full text-center">
+        <div class="bg-white shadow-lg rounded-xl p-8">
+            <!-- Icon -->
+            <div class="mb-6">
+                <i class="fas fa-paper-plane text-naia-green text-6xl"></i>
+            </div>
+
+            <!-- Message -->
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">
+                Verification Email Sent!
+            </h2>
+
+            <p class="text-gray-600 mb-6">
+                We've sent a verification email to your email address.
+                Please check your inbox and click the confirmation link to complete your registration.
+            </p>
+
+            <!-- Email icon animation -->
+            <div class="bg-gray-50 rounded-lg p-6 mb-6">
+                <div class="flex items-center justify-center space-x-2">
+                    <i class="fas fa-inbox text-3xl text-gray-400"></i>
+                    <i class="fas fa-arrow-right text-naia-green animate-pulse"></i>
+                    <i class="fas fa-envelope-open-text text-3xl text-naia-green"></i>
+                </div>
+                <p class="text-sm text-gray-500 mt-3">
+                    Check your inbox for the verification link
+                </p>
+            </div>
+
+            <!-- Tips -->
+            <div class="text-left bg-blue-50 rounded-lg p-4 mb-6">
+                <h3 class="font-medium text-blue-900 mb-2">
+                    <i class="fas fa-info-circle mr-2"></i>
+                    Didn't receive the email?
+                </h3>
+                <ul class="text-sm text-blue-700 space-y-1">
+                    <li>Check your spam or junk folder</li>
+                    <li>Make sure you entered the correct email</li>
+                    <li>Wait a few minutes and try again</li>
+                </ul>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex flex-col space-y-3">
+                <a href="{% url 'account_login' %}"
+                   class="w-full bg-naia-green text-white py-3 px-4 rounded-lg font-medium hover:bg-naia-green-dark transition duration-200">
+                    <i class="fas fa-sign-in-alt mr-2"></i>
+                    Go to Login
+                </a>
+                <a href="{% url 'core:home' %}"
+                   class="w-full bg-gray-100 text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-200 transition duration-200">
+                    <i class="fas fa-home mr-2"></i>
+                    Return to Home
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,142 @@
+{% load static %}
+<nav class="bg-naia-green shadow-lg sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16">
+            <!-- Logo and Brand -->
+            <div class="flex items-center">
+                <a href="{% url 'core:home' %}" class="flex items-center">
+                    <img src="{% static 'images/logo.png' %}" alt="NAIA Logo" class="h-10 w-10 rounded-full object-cover mr-2 bg-white p-0.5">
+                    <span class="text-white font-bold text-xl">NAIA</span>
+                </a>
+            </div>
+
+            <!-- Desktop Navigation -->
+            <div class="hidden md:flex items-center space-x-4">
+                <a href="{% url 'core:home' %}" class="text-white hover:text-naia-gold px-3 py-2 rounded-md text-sm font-medium transition duration-200">
+                    Home
+                </a>
+                <a href="{% url 'flights:search' %}" class="text-white hover:text-naia-gold px-3 py-2 rounded-md text-sm font-medium transition duration-200">
+                    Flights
+                </a>
+                <a href="{% url 'flights:status_board' %}" class="text-white hover:text-naia-gold px-3 py-2 rounded-md text-sm font-medium transition duration-200">
+                    Flight Status
+                </a>
+                <a href="{% url 'parking:home' %}" class="text-white hover:text-naia-gold px-3 py-2 rounded-md text-sm font-medium transition duration-200">
+                    Parking
+                </a>
+                <a href="{% url 'core:about' %}" class="text-white hover:text-naia-gold px-3 py-2 rounded-md text-sm font-medium transition duration-200">
+                    About
+                </a>
+                <a href="{% url 'core:contact' %}" class="text-white hover:text-naia-gold px-3 py-2 rounded-md text-sm font-medium transition duration-200">
+                    Contact
+                </a>
+
+                {% if user.is_authenticated %}
+                    <!-- User Menu Dropdown -->
+                    <div class="relative" x-data="{ open: false }">
+                        <button @click="open = !open" class="flex items-center text-white hover:text-naia-gold px-3 py-2 rounded-md text-sm font-medium transition duration-200">
+                            <i class="fas fa-user-circle mr-2"></i>
+                            {{ user.first_name|default:user.email }}
+                            <i class="fas fa-chevron-down ml-1 text-xs"></i>
+                        </button>
+                        <div x-show="open" @click.away="open = false"
+                             class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                            <a href="{% url 'accounts:dashboard' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                            </a>
+                            <a href="{% url 'accounts:bookings' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-ticket-alt mr-2"></i>My Bookings
+                            </a>
+                            <a href="{% url 'parking:my_reservations' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-parking mr-2"></i>My Parking
+                            </a>
+                            <a href="{% url 'accounts:profile' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-user mr-2"></i>Profile
+                            </a>
+                            {% if user.is_staff %}
+                            <a href="{% url 'analytics:dashboard' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-chart-bar mr-2"></i>Analytics
+                            </a>
+                            {% endif %}
+                            <hr class="my-1">
+                            <a href="{% url 'account_logout' %}" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+                                <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                            </a>
+                        </div>
+                    </div>
+                {% else %}
+                    <a href="{% url 'account_login' %}" class="text-white hover:text-naia-gold px-3 py-2 rounded-md text-sm font-medium transition duration-200">
+                        Login
+                    </a>
+                    <a href="{% url 'account_signup' %}" class="bg-naia-gold text-naia-green px-4 py-2 rounded-md text-sm font-medium hover:bg-yellow-400 transition duration-200">
+                        Sign Up
+                    </a>
+                {% endif %}
+            </div>
+
+            <!-- Mobile menu button -->
+            <div class="md:hidden flex items-center">
+                <button type="button" id="mobile-menu-button" class="text-white hover:text-naia-gold focus:outline-none">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Navigation Menu -->
+    <div id="mobile-menu" class="hidden md:hidden bg-naia-green-dark">
+        <div class="px-2 pt-2 pb-3 space-y-1">
+            <a href="{% url 'core:home' %}" class="block text-white hover:bg-naia-green-light px-3 py-2 rounded-md text-base font-medium">
+                Home
+            </a>
+            <a href="{% url 'flights:search' %}" class="block text-white hover:bg-naia-green-light px-3 py-2 rounded-md text-base font-medium">
+                Flights
+            </a>
+            <a href="{% url 'flights:status_board' %}" class="block text-white hover:bg-naia-green-light px-3 py-2 rounded-md text-base font-medium">
+                Flight Status
+            </a>
+            <a href="{% url 'parking:home' %}" class="block text-white hover:bg-naia-green-light px-3 py-2 rounded-md text-base font-medium">
+                Parking
+            </a>
+            <a href="{% url 'core:about' %}" class="block text-white hover:bg-naia-green-light px-3 py-2 rounded-md text-base font-medium">
+                About
+            </a>
+            <a href="{% url 'core:contact' %}" class="block text-white hover:bg-naia-green-light px-3 py-2 rounded-md text-base font-medium">
+                Contact
+            </a>
+            <hr class="border-naia-green-light my-2">
+            {% if user.is_authenticated %}
+                <a href="{% url 'accounts:dashboard' %}" class="block text-white hover:bg-naia-green-light px-3 py-2 rounded-md text-base font-medium">
+                    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                </a>
+                <a href="{% url 'accounts:bookings' %}" class="block text-white hover:bg-naia-green-light px-3 py-2 rounded-md text-base font-medium">
+                    <i class="fas fa-ticket-alt mr-2"></i>My Bookings
+                </a>
+                <a href="{% url 'parking:my_reservations' %}" class="block text-white hover:bg-naia-green-light px-3 py-2 rounded-md text-base font-medium">
+                    <i class="fas fa-parking mr-2"></i>My Parking
+                </a>
+                <a href="{% url 'accounts:profile' %}" class="block text-white hover:bg-naia-green-light px-3 py-2 rounded-md text-base font-medium">
+                    <i class="fas fa-user mr-2"></i>Profile
+                </a>
+                {% if user.is_staff %}
+                <a href="{% url 'analytics:dashboard' %}" class="block text-white hover:bg-naia-green-light px-3 py-2 rounded-md text-base font-medium">
+                    <i class="fas fa-chart-bar mr-2"></i>Analytics
+                </a>
+                {% endif %}
+                <a href="{% url 'account_logout' %}" class="block text-red-300 hover:bg-naia-green-light px-3 py-2 rounded-md text-base font-medium">
+                    <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                </a>
+            {% else %}
+                <a href="{% url 'account_login' %}" class="block text-white hover:bg-naia-green-light px-3 py-2 rounded-md text-base font-medium">
+                    Login
+                </a>
+                <a href="{% url 'account_signup' %}" class="block text-naia-gold hover:bg-naia-green-light px-3 py-2 rounded-md text-base font-medium">
+                    Sign Up
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</nav>
+
+<!-- Alpine.js for dropdown (lightweight) -->
+<script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>

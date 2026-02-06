@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Edit Profile{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <a href="{% url 'accounts:profile' %}" class="text-naia-green hover:underline mb-4 inline-block">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Profile
+            </a>
+            <h1 class="text-3xl font-bold text-gray-900">Edit Profile</h1>
+            <p class="text-gray-600 mt-1">Update your personal information and preferences</p>
+        </div>
+
+        <form method="post" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+
+            <!-- Profile Photo -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                <div class="p-6 border-b">
+                    <h3 class="text-lg font-semibold text-gray-900">
+                        <i class="fas fa-camera text-naia-green mr-2"></i>Profile Photo
+                    </h3>
+                </div>
+                <div class="p-6">
+                    <div class="flex items-center">
+                        <div class="mr-6">
+                            {% if object.avatar %}
+                            <img src="{{ object.avatar.url }}" alt="Current Photo"
+                                 class="w-24 h-24 rounded-full object-cover border-4 border-gray-200">
+                            {% else %}
+                            <div class="w-24 h-24 rounded-full bg-naia-green flex items-center justify-center border-4 border-gray-200">
+                                <span class="text-white text-2xl font-bold">
+                                    {{ user.first_name|slice:":1"|upper }}{{ user.last_name|slice:":1"|upper }}
+                                </span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="flex-1">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Upload new photo</label>
+                            {{ form.avatar }}
+                            <p class="mt-2 text-sm text-gray-500">JPG, PNG or GIF. Max 2MB.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Basic Information -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                <div class="p-6 border-b">
+                    <h3 class="text-lg font-semibold text-gray-900">
+                        <i class="fas fa-user text-naia-green mr-2"></i>Basic Information
+                    </h3>
+                </div>
+                <div class="p-6">
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Title</label>
+                            {{ form.title }}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Gender</label>
+                            {{ form.gender }}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">First Name *</label>
+                            {{ user_form.first_name }}
+                            {% if user_form.first_name.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ user_form.first_name.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Last Name *</label>
+                            {{ user_form.last_name }}
+                            {% if user_form.last_name.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ user_form.last_name.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
+                            {{ form.date_of_birth }}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Nationality</label>
+                            {{ form.nationality }}
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                            {{ form.phone_number }}
+                            {% if form.phone_number.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.phone_number.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Passport Information -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                <div class="p-6 border-b">
+                    <h3 class="text-lg font-semibold text-gray-900">
+                        <i class="fas fa-passport text-naia-green mr-2"></i>Passport Information
+                    </h3>
+                    <p class="text-sm text-gray-500 mt-1">Required for international flights</p>
+                </div>
+                <div class="p-6">
+                    <div class="grid md:grid-cols-3 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Passport Number</label>
+                            {{ form.passport_number }}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Issuing Country</label>
+                            {{ form.passport_country }}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Expiry Date</label>
+                            {{ form.passport_expiry }}
+                        </div>
+                    </div>
+                    <div class="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <p class="text-sm text-blue-800">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            Your passport must be valid for at least 6 months beyond your travel date.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Address -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                <div class="p-6 border-b">
+                    <h3 class="text-lg font-semibold text-gray-900">
+                        <i class="fas fa-map-marker-alt text-naia-green mr-2"></i>Address
+                    </h3>
+                </div>
+                <div class="p-6">
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Address Line 1</label>
+                            {{ form.address_line1 }}
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Address Line 2</label>
+                            {{ form.address_line2 }}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">City</label>
+                            {{ form.city }}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">State/Province</label>
+                            {{ form.state }}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Postal Code</label>
+                            {{ form.postal_code }}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Country</label>
+                            {{ form.country }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Emergency Contact -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                <div class="p-6 border-b">
+                    <h3 class="text-lg font-semibold text-gray-900">
+                        <i class="fas fa-phone-alt text-naia-green mr-2"></i>Emergency Contact
+                    </h3>
+                    <p class="text-sm text-gray-500 mt-1">Someone we can contact in case of emergency</p>
+                </div>
+                <div class="p-6">
+                    <div class="grid md:grid-cols-3 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Contact Name</label>
+                            {{ form.emergency_contact_name }}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                            {{ form.emergency_contact_phone }}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Relationship</label>
+                            {{ form.emergency_contact_relationship }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Travel Preferences -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                <div class="p-6 border-b">
+                    <h3 class="text-lg font-semibold text-gray-900">
+                        <i class="fas fa-cog text-naia-green mr-2"></i>Travel Preferences
+                    </h3>
+                    <p class="text-sm text-gray-500 mt-1">These will be used as defaults for your bookings</p>
+                </div>
+                <div class="p-6">
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Preferred Seat</label>
+                            {{ form.preferred_seat }}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Meal Preference</label>
+                            {{ form.meal_preference }}
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Special Assistance Requirements</label>
+                            {{ form.special_assistance }}
+                            <p class="mt-2 text-sm text-gray-500">
+                                Please describe any special assistance you may require (wheelchair, visual/hearing assistance, etc.)
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="flex flex-col sm:flex-row gap-4 justify-end">
+                <a href="{% url 'accounts:profile' %}"
+                   class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition text-center">
+                    Cancel
+                </a>
+                <button type="submit"
+                        class="px-6 py-3 bg-naia-green text-white rounded-lg font-medium hover:bg-naia-green-dark transition">
+                    <i class="fas fa-save mr-2"></i>Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

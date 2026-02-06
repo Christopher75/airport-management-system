@@ -1,0 +1,319 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Welcome{% endblock %}
+
+{% block content %}
+<!-- Hero Section with Search -->
+<section class="relative bg-naia-green-dark py-20 overflow-hidden">
+    <!-- Background Image -->
+    <div class="absolute inset-0">
+        <img src="{% static 'images/airport.jpg' %}" alt="Nnamdi Azikiwe International Airport" class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-gradient-to-r from-naia-green-dark/85 to-naia-green/70"></div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold text-white mb-4 slide-up">
+                Welcome to Nnamdi Azikiwe International Airport
+            </h1>
+            <p class="text-xl text-white/90 max-w-2xl mx-auto">
+                Nigeria premier gateway to the world. Book flights, check schedules, and start your journey today.
+            </p>
+        </div>
+
+        <!-- Flight Search Card -->
+        <div class="bg-white rounded-2xl shadow-2xl p-6 md:p-8 max-w-4xl mx-auto">
+            <form action="{% url 'flights:search' %}" method="get" class="space-y-6">
+                <!-- Trip Type -->
+                <div class="flex space-x-4 mb-4">
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="trip_type" value="one_way" class="form-radio text-naia-green" checked onchange="toggleReturnDate()">
+                        <span class="ml-2 text-gray-700">One Way</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="trip_type" value="round_trip" class="form-radio text-naia-green" onchange="toggleReturnDate()">
+                        <span class="ml-2 text-gray-700">Round Trip</span>
+                    </label>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- From -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">From</label>
+                        <div class="relative">
+                            <i class="fas fa-plane-departure absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            <select name="origin" id="origin" required
+                                    class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-naia-green focus:border-naia-green appearance-none bg-white">
+                                <option value="">Select origin</option>
+                                {% for airport in airports %}
+                                <option value="{{ airport.code }}">{{ airport.city }} ({{ airport.code }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Swap Button (Hidden on Mobile) -->
+                    <div class="hidden lg:flex items-end justify-center pb-3">
+                        <button type="button" onclick="swapAirports()" class="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition">
+                            <i class="fas fa-exchange-alt text-naia-green"></i>
+                        </button>
+                    </div>
+
+                    <!-- To -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">To</label>
+                        <div class="relative">
+                            <i class="fas fa-plane-arrival absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            <select name="destination" id="destination" required
+                                    class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-naia-green focus:border-naia-green appearance-none bg-white">
+                                <option value="">Select destination</option>
+                                {% for airport in airports %}
+                                <option value="{{ airport.code }}">{{ airport.city }} ({{ airport.code }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Departure Date -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Departure</label>
+                        <div class="relative">
+                            <i class="fas fa-calendar absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            <input type="date" name="departure_date" required
+                                   class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-naia-green focus:border-naia-green departure-date">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <!-- Return Date -->
+                    <div id="return-date-container" class="hidden">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Return</label>
+                        <div class="relative">
+                            <i class="fas fa-calendar absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            <input type="date" name="return_date"
+                                   class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-naia-green focus:border-naia-green return-date">
+                        </div>
+                    </div>
+
+                    <!-- Passengers -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Passengers</label>
+                        <div class="relative">
+                            <i class="fas fa-users absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            <select name="passengers"
+                                    class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-naia-green focus:border-naia-green appearance-none bg-white">
+                                <option value="1">1 Passenger</option>
+                                <option value="2">2 Passengers</option>
+                                <option value="3">3 Passengers</option>
+                                <option value="4">4 Passengers</option>
+                                <option value="5">5 Passengers</option>
+                                <option value="6">6+ Passengers</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Cabin Class -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Cabin Class</label>
+                        <div class="relative">
+                            <i class="fas fa-chair absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            <select name="seat_class"
+                                    class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-naia-green focus:border-naia-green appearance-none bg-white">
+                                <option value="ECONOMY">Economy</option>
+                                <option value="BUSINESS">Business</option>
+                                <option value="FIRST">First Class</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Search Button -->
+                    <div class="flex items-end">
+                        <button type="submit"
+                                class="w-full bg-naia-green text-white py-3 px-6 rounded-lg font-medium hover:bg-naia-green-dark transition duration-200 flex items-center justify-center">
+                            <i class="fas fa-search mr-2"></i>
+                            Search Flights
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+
+<!-- Quick Stats -->
+<section class="bg-white py-8 border-b">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            <div>
+                <div class="text-3xl font-bold text-naia-green">{{ upcoming_flights_count|default:"100+" }}</div>
+                <div class="text-gray-600">Daily Flights</div>
+            </div>
+            <div>
+                <div class="text-3xl font-bold text-naia-green">40+</div>
+                <div class="text-gray-600">Destinations</div>
+            </div>
+            <div>
+                <div class="text-3xl font-bold text-naia-green">15+</div>
+                <div class="text-gray-600">Airlines</div>
+            </div>
+            <div>
+                <div class="text-3xl font-bold text-naia-green">8M+</div>
+                <div class="text-gray-600">Annual Passengers</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Popular Destinations -->
+<section class="py-16 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">Popular Destinations</h2>
+            <p class="text-gray-600 max-w-2xl mx-auto">
+                Explore our most popular international destinations and book your next adventure.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- London -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition duration-300 card-hover">
+                <div class="h-40 relative overflow-hidden">
+                    <img src="{% static 'images/london.png' %}" alt="London" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+                </div>
+                <div class="p-4">
+                    <h3 class="font-semibold text-lg text-gray-900">London</h3>
+                    <p class="text-gray-500 text-sm">United Kingdom</p>
+                    <div class="mt-3 flex justify-between items-center">
+                        <span class="text-naia-green font-semibold">From NGN 450,000</span>
+                        <a href="{% url 'flights:search' %}?destination=LHR" class="text-naia-green hover:underline text-sm">
+                            Search <i class="fas fa-arrow-right ml-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dubai -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition duration-300 card-hover">
+                <div class="h-40 relative overflow-hidden">
+                    <img src="{% static 'images/dubai.png' %}" alt="Dubai" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+                </div>
+                <div class="p-4">
+                    <h3 class="font-semibold text-lg text-gray-900">Dubai</h3>
+                    <p class="text-gray-500 text-sm">United Arab Emirates</p>
+                    <div class="mt-3 flex justify-between items-center">
+                        <span class="text-naia-green font-semibold">From NGN 380,000</span>
+                        <a href="{% url 'flights:search' %}?destination=DXB" class="text-naia-green hover:underline text-sm">
+                            Search <i class="fas fa-arrow-right ml-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lagos -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition duration-300 card-hover">
+                <div class="h-40 relative overflow-hidden">
+                    <img src="{% static 'images/lagos.jpg' %}" alt="Lagos" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+                </div>
+                <div class="p-4">
+                    <h3 class="font-semibold text-lg text-gray-900">Lagos</h3>
+                    <p class="text-gray-500 text-sm">Nigeria</p>
+                    <div class="mt-3 flex justify-between items-center">
+                        <span class="text-naia-green font-semibold">From NGN 45,000</span>
+                        <a href="{% url 'flights:search' %}?destination=LOS" class="text-naia-green hover:underline text-sm">
+                            Search <i class="fas fa-arrow-right ml-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Johannesburg -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition duration-300 card-hover">
+                 <div class="h-40 relative overflow-hidden">
+                    <img src="{% static 'images/johannesburg.jpg' %}" alt="Johannesburg" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+                </div>
+                <div class="p-4">
+                    <h3 class="font-semibold text-lg text-gray-900">Johannesburg</h3>
+                    <p class="text-gray-500 text-sm">South Africa</p>
+                    <div class="mt-3 flex justify-between items-center">
+                        <span class="text-naia-green font-semibold">From NGN 320,000</span>
+                        <a href="{% url 'flights:search' %}?destination=JNB" class="text-naia-green hover:underline text-sm">
+                            Search <i class="fas fa-arrow-right ml-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Services Section -->
+<section class="py-16 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">Our Services</h2>
+            <p class="text-gray-600 max-w-2xl mx-auto">
+                We provide world-class facilities and services to make your travel experience seamless.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="text-center p-6">
+                <div class="w-16 h-16 bg-naia-green/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-ticket-alt text-2xl text-naia-green"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Easy Booking</h3>
+                <p class="text-gray-600">
+                    Book your flights online with our simple, secure booking system. Get instant confirmation and e-tickets.
+                </p>
+            </div>
+
+            <div class="text-center p-6">
+                <div class="w-16 h-16 bg-naia-green/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-clock text-2xl text-naia-green"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Real-time Updates</h3>
+                <p class="text-gray-600">
+                    Get live flight status updates, gate changes, and delay notifications straight to your device.
+                </p>
+            </div>
+
+            <div class="text-center p-6">
+                <div class="w-16 h-16 bg-naia-green/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-headset text-2xl text-naia-green"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">24/7 Support</h3>
+                <p class="text-gray-600">
+                    Our dedicated support team is available round the clock to assist you with any queries.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="relative py-20">
+    <!-- Background Image -->
+    <div class="absolute inset-0">
+        <img src="{% static 'images/terminal.jpg' %}" alt="Airport Terminal" class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-naia-green/80"></div>
+    </div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+        <h2 class="text-3xl font-bold text-white mb-4">Ready to Start Your Journey?</h2>
+        <p class="text-white/90 mb-8 max-w-2xl mx-auto">
+            Create an account today and enjoy faster bookings, exclusive deals, and loyalty rewards.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="{% url 'account_signup' %}"
+               class="bg-white text-naia-green px-8 py-3 rounded-lg font-medium hover:bg-gray-100 transition duration-200">
+                Create Account
+            </a>
+            <a href="{% url 'flights:search' %}"
+               class="bg-naia-gold text-naia-green px-8 py-3 rounded-lg font-medium hover:bg-yellow-400 transition duration-200">
+                Search Flights
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}

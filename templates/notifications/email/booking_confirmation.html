@@ -1,0 +1,111 @@
+{% extends "notifications/email/base_email.html" %}
+
+{% block title %}Booking Confirmed - {{ booking.reference }}{% endblock %}
+
+{% block content %}
+<h2>Booking Confirmed!</h2>
+
+<p>Dear {{ user.first_name|default:"Valued Customer" }},</p>
+
+<p>
+    Great news! Your flight booking has been confirmed. Here are your booking details:
+</p>
+
+<!-- Booking Reference -->
+<div style="text-align: center; padding: 20px; background-color: #f0f8f0; border-radius: 8px; margin: 20px 0;">
+    <p style="margin: 0; color: #666;">Booking Reference</p>
+    <p style="margin: 5px 0; font-size: 32px; font-weight: bold; color: #006400; letter-spacing: 3px;">
+        {{ booking.reference }}
+    </p>
+    <p style="margin: 0; font-size: 12px; color: #888;">Please keep this reference safe</p>
+</div>
+
+<!-- Flight Details -->
+<div class="flight-card">
+    <p style="margin: 0; font-weight: 600; color: #333;">
+        {{ flight.flight_number }} | {{ flight.airline.name }}
+    </p>
+
+    <div class="flight-route">
+        <div>
+            <div class="airport-code">{{ flight.origin.code }}</div>
+            <div class="airport-city">{{ flight.origin.city }}</div>
+        </div>
+        <div class="flight-arrow">&#10132;</div>
+        <div>
+            <div class="airport-code">{{ flight.destination.code }}</div>
+            <div class="airport-city">{{ flight.destination.city }}</div>
+        </div>
+    </div>
+
+    <p style="margin: 0; color: #333;">
+        <strong>{{ flight.scheduled_departure|date:"l, F d, Y" }}</strong><br>
+        Departure: {{ flight.scheduled_departure|time:"H:i" }} |
+        Arrival: {{ flight.scheduled_arrival|time:"H:i" }}
+    </p>
+</div>
+
+<!-- Passenger Details -->
+<div class="info-box">
+    <h3 style="margin-top: 0; color: #006400;">Passengers</h3>
+    {% for passenger in passengers %}
+    <div class="info-row">
+        <span class="info-label">{{ forloop.counter }}. {{ passenger.get_title_display }} {{ passenger.first_name }} {{ passenger.last_name }}</span>
+        <span class="info-value">{{ passenger.get_passenger_type_display }}</span>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Payment Summary -->
+<div class="info-box">
+    <h3 style="margin-top: 0; color: #006400;">Payment Summary</h3>
+    <div class="info-row">
+        <span class="info-label">Class</span>
+        <span class="info-value">{{ booking.get_seat_class_display }}</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Base Fare</span>
+        <span class="info-value">NGN {{ booking.base_price|floatformat:2 }}</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Taxes & Fees</span>
+        <span class="info-value">NGN {{ booking.taxes|floatformat:2 }}</span>
+    </div>
+    <div class="info-row" style="font-size: 16px;">
+        <span class="info-label"><strong>Total Paid</strong></span>
+        <span class="info-value" style="color: #006400;"><strong>NGN {{ booking.total_price|floatformat:2 }}</strong></span>
+    </div>
+</div>
+
+<!-- Important Information -->
+<div class="alert alert-info">
+    <strong>Important Information:</strong>
+    <ul style="margin: 10px 0 0 0; padding-left: 20px;">
+        <li>Please arrive at the airport at least 2 hours before domestic flights and 3 hours before international flights.</li>
+        <li>Carry a valid government-issued photo ID along with this confirmation.</li>
+        <li>Online check-in opens 24 hours before departure.</li>
+    </ul>
+</div>
+
+<!-- Call to Action -->
+<div style="text-align: center;">
+    <a href="{{ site_url }}/dashboard/bookings/{{ booking.reference }}/" class="btn">
+        View E-Ticket
+    </a>
+</div>
+
+<p style="color: #666; font-size: 14px;">
+    If you have any questions about your booking, please contact our customer service team
+    at <a href="tel:{{ support_phone }}">{{ support_phone }}</a> or email
+    <a href="mailto:{{ support_email }}">{{ support_email }}</a>.
+</p>
+
+<p>
+    Thank you for choosing {{ site_name }}. We wish you a pleasant journey!
+</p>
+
+<p style="margin-bottom: 0;">
+    Best regards,<br>
+    <strong>The NAIA Team</strong>
+</p>
+{% endblock %}

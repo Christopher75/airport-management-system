@@ -1,0 +1,96 @@
+{% extends "notifications/email/base_email.html" %}
+
+{% block title %}Payment Receipt - {{ payment.paystack_reference }}{% endblock %}
+
+{% block content %}
+<h2>Payment Receipt</h2>
+
+<p>Dear {{ user.first_name|default:"Valued Customer" }},</p>
+
+<p>
+    Thank you for your payment. This email confirms that we have received your payment successfully.
+</p>
+
+<!-- Payment Status -->
+<div style="text-align: center; padding: 20px; background-color: #d1e7dd; border-radius: 8px; margin: 20px 0;">
+    <p style="margin: 0; font-size: 48px;">&#10003;</p>
+    <p style="margin: 5px 0; font-size: 24px; font-weight: bold; color: #0f5132;">
+        Payment Successful
+    </p>
+</div>
+
+<!-- Transaction Details -->
+<div class="info-box">
+    <h3 style="margin-top: 0; color: #006400;">Transaction Details</h3>
+    <div class="info-row">
+        <span class="info-label">Transaction Reference</span>
+        <span class="info-value">{{ payment.paystack_reference }}</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Booking Reference</span>
+        <span class="info-value">{{ booking.reference }}</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Payment Method</span>
+        <span class="info-value">
+            {% if payment.card_last4 %}
+            {{ payment.card_type|title }} **** {{ payment.card_last4 }}
+            {% else %}
+            {{ payment.get_payment_method_display }}
+            {% endif %}
+        </span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Date & Time</span>
+        <span class="info-value">{{ payment.paid_at|date:"M d, Y H:i" }}</span>
+    </div>
+    <div class="info-row" style="font-size: 18px; padding-top: 15px; border-top: 2px solid #006400;">
+        <span class="info-label"><strong>Amount Paid</strong></span>
+        <span class="info-value" style="color: #006400;"><strong>NGN {{ payment.amount|floatformat:2 }}</strong></span>
+    </div>
+</div>
+
+<!-- Booking Summary -->
+<div class="info-box">
+    <h3 style="margin-top: 0; color: #006400;">Booking Summary</h3>
+    <div class="info-row">
+        <span class="info-label">Flight</span>
+        <span class="info-value">{{ booking.flight.flight_number }}</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Route</span>
+        <span class="info-value">{{ booking.flight.origin.code }} - {{ booking.flight.destination.code }}</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Date</span>
+        <span class="info-value">{{ booking.flight.scheduled_departure|date:"M d, Y" }}</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Passengers</span>
+        <span class="info-value">{{ booking.passenger_count }}</span>
+    </div>
+</div>
+
+<!-- Call to Action -->
+<div style="text-align: center;">
+    <a href="{{ site_url }}/dashboard/bookings/{{ booking.reference }}/" class="btn">
+        View Booking Details
+    </a>
+</div>
+
+<div class="alert alert-info">
+    <strong>Need a Refund?</strong><br>
+    If you need to cancel or modify your booking, please visit your booking details page or
+    contact our customer service team. Refund policies apply based on the fare type and timing.
+</div>
+
+<p style="color: #666; font-size: 14px;">
+    This is an automated receipt. Please save this email for your records.
+    For any queries, contact us at <a href="mailto:{{ support_email }}">{{ support_email }}</a>.
+</p>
+
+<p style="margin-bottom: 0;">
+    Best regards,<br>
+    <strong>The NAIA Team</strong>
+</p>
+{% endblock %}

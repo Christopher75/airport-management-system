@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Manage Booking{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="bg-gradient-to-r from-naia-green to-naia-green-dark py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h1 class="text-3xl font-bold text-white mb-4">Manage Your Booking</h1>
+        <p class="text-white/80 max-w-2xl mx-auto">
+            Enter your booking reference and last name to view or manage your booking details.
+        </p>
+    </div>
+</section>
+
+<section class="py-12 bg-gray-50">
+    <div class="max-w-md mx-auto px-4">
+        <!-- Search Form -->
+        <div class="bg-white rounded-xl shadow-lg p-8">
+            <form method="post" action="{% url 'bookings:manage' %}" class="space-y-6">
+                {% csrf_token %}
+
+                <!-- Booking Reference -->
+                <div>
+                    <label for="reference" class="block text-sm font-medium text-gray-700 mb-1">
+                        Booking Reference *
+                    </label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                            <i class="fas fa-ticket-alt"></i>
+                        </span>
+                        <input type="text" name="reference" id="reference" required
+                               maxlength="6"
+                               class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-naia-green focus:border-naia-green uppercase"
+                               placeholder="e.g. ABC123"
+                               pattern="[A-Za-z0-9]{6}">
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">6-character code from your confirmation email</p>
+                </div>
+
+                <!-- Last Name -->
+                <div>
+                    <label for="last_name" class="block text-sm font-medium text-gray-700 mb-1">
+                        Passenger Last Name *
+                    </label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                            <i class="fas fa-user"></i>
+                        </span>
+                        <input type="text" name="last_name" id="last_name" required
+                               class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-naia-green focus:border-naia-green"
+                               placeholder="Enter last name">
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">As entered during booking</p>
+                </div>
+
+                <!-- Submit -->
+                <button type="submit"
+                        class="w-full bg-naia-green text-white py-3 px-4 rounded-lg font-medium hover:bg-naia-green-dark transition">
+                    <i class="fas fa-search mr-2"></i>
+                    Find My Booking
+                </button>
+            </form>
+
+            <!-- Divider -->
+            <div class="relative my-8">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-gray-200"></div>
+                </div>
+                <div class="relative flex justify-center">
+                    <span class="px-3 bg-white text-gray-500 text-sm">or</span>
+                </div>
+            </div>
+
+            <!-- Login Link -->
+            <p class="text-center text-gray-600">
+                <a href="{% url 'account_login' %}?next={% url 'accounts:bookings' %}"
+                   class="text-naia-green hover:underline font-medium">
+                    Sign in to your account
+                </a>
+                to see all your bookings
+            </p>
+        </div>
+
+        <!-- Help Section -->
+        <div class="mt-8 text-center">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Need Help?</h3>
+            <p class="text-gray-600 mb-4">
+                Can't find your booking reference? Check your confirmation email or contact our support team.
+            </p>
+            <a href="{% url 'core:contact' %}"
+               class="text-naia-green hover:underline font-medium">
+                <i class="fas fa-headset mr-1"></i>
+                Contact Support
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- What You Can Do Section -->
+<section class="py-12 bg-white">
+    <div class="max-w-4xl mx-auto px-4">
+        <h2 class="text-2xl font-bold text-gray-900 text-center mb-8">What You Can Do</h2>
+
+        <div class="grid md:grid-cols-3 gap-6">
+            <div class="text-center p-6">
+                <div class="w-12 h-12 bg-naia-green/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-eye text-naia-green text-xl"></i>
+                </div>
+                <h3 class="font-semibold text-gray-900 mb-2">View Details</h3>
+                <p class="text-sm text-gray-600">See your flight details, passenger information, and payment summary.</p>
+            </div>
+
+            <div class="text-center p-6">
+                <div class="w-12 h-12 bg-naia-green/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-print text-naia-green text-xl"></i>
+                </div>
+                <h3 class="font-semibold text-gray-900 mb-2">Print Itinerary</h3>
+                <p class="text-sm text-gray-600">Download or print your e-ticket and travel itinerary.</p>
+            </div>
+
+            <div class="text-center p-6">
+                <div class="w-12 h-12 bg-naia-green/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-check-circle text-naia-green text-xl"></i>
+                </div>
+                <h3 class="font-semibold text-gray-900 mb-2">Online Check-in</h3>
+                <p class="text-sm text-gray-600">Check in online starting 24 hours before your flight.</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

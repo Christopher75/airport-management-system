@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Booking Report - NAIA Analytics{% endblock %}
+
+{% block content %}
+<div class="bg-gray-100 min-h-screen py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <a href="{% url 'analytics:dashboard' %}" class="text-naia-green hover:underline mb-4 inline-block">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+            </a>
+            <h1 class="text-3xl font-bold text-gray-900">Booking Analytics Report</h1>
+            <p class="text-gray-600">Booking trends and customer insights</p>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500">Conversion Rate</p>
+                        <p class="text-3xl font-bold text-naia-green">{{ conversion_rate|floatformat:1 }}%</p>
+                        <p class="text-sm text-gray-500">Bookings completed</p>
+                    </div>
+                    <i class="fas fa-funnel-dollar text-4xl text-green-200"></i>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500">Total Bookings</p>
+                        <p class="text-3xl font-bold text-blue-600">
+                            {% for item in bookings_by_status %}
+                                {% if forloop.first %}{{ item.count }}{% endif %}
+                            {% endfor %}
+                        </p>
+                    </div>
+                    <i class="fas fa-ticket-alt text-4xl text-blue-200"></i>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500">Top Destinations</p>
+                        <p class="text-3xl font-bold text-purple-600">{{ top_destinations|length }}</p>
+                        <p class="text-sm text-gray-500">Popular routes</p>
+                    </div>
+                    <i class="fas fa-map-marker-alt text-4xl text-purple-200"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- Bookings by Status -->
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Bookings by Status</h2>
+                <div style="height: 300px;">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Bookings by Seat Class -->
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Bookings by Seat Class</h2>
+                <div style="height: 300px;">
+                    <canvas id="classChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Daily Bookings Trend -->
+        <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Daily Booking Trend (Last 30 Days)</h2>
+            <div style="height: 350px;">
+                <canvas id="dailyBookingsChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Top Destinations -->
+        <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Top Destinations</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {% for dest in top_destinations %}
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div class="flex items-center">
+                        <span class="w-8 h-8 bg-naia-green text-white rounded-full flex items-center justify-center font-bold mr-3">
+                            {{ forloop.counter }}
+                        </span>
+                        <div>
+                            <span class="font-bold text-gray-900">{{ dest.flight__destination__code }}</span>
+                            <span class="text-gray-500 ml-2">{{ dest.flight__destination__city }}</span>
+                        </div>
+                    </div>
+                    <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                        {{ dest.count }} bookings
+                    </span>
+                </div>
+                {% empty %}
+                <p class="text-gray-500 col-span-2 text-center py-8">No destination data available</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Seat Class Revenue Breakdown -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden">
+            <div class="p-6 border-b">
+                <h2 class="text-lg font-semibold text-gray-900">Seat Class Performance</h2>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Seat Class</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Bookings</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Revenue</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Avg. per Booking</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Share</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for item in bookings_by_class %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                                    {% if item.seat_class == 'ECONOMY' %}bg-green-100 text-green-800
+                                    {% elif item.seat_class == 'BUSINESS' %}bg-blue-100 text-blue-800
+                                    {% elif item.seat_class == 'FIRST' %}bg-purple-100 text-purple-800
+                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {{ item.seat_class }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap font-medium">{{ item.count }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap font-bold text-naia-green">
+                                NGN {{ item.revenue|floatformat:0|default:"0" }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% if item.count > 0 and item.revenue %}
+                                    NGN {% widthratio item.revenue item.count 1 %}
+                                {% else %}
+                                    NGN 0
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="w-24 bg-gray-200 rounded-full h-2 mr-2">
+                                        {% with total=bookings_by_class|length %}
+                                        <div class="bg-naia-green h-2 rounded-full" style="width: {% widthratio item.count 100 100 %}%"></div>
+                                        {% endwith %}
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="px-6 py-12 text-center text-gray-500">No booking data available</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Status Chart
+const statusData = {{ bookings_by_status|safe }};
+const statusColors = {
+    'PENDING': '#F59E0B',
+    'CONFIRMED': '#10B981',
+    'CANCELLED': '#EF4444',
+    'COMPLETED': '#3B82F6'
+};
+
+new Chart(document.getElementById('statusChart'), {
+    type: 'doughnut',
+    data: {
+        labels: statusData.map(item => item.status.replace('_', ' ')),
+        datasets: [{
+            data: statusData.map(item => item.count),
+            backgroundColor: statusData.map(item => statusColors[item.status] || '#6B7280')
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { position: 'bottom' }
+        }
+    }
+});
+
+// Class Chart
+const classData = {{ bookings_by_class|safe }};
+const classColors = {
+    'ECONOMY': '#10B981',
+    'BUSINESS': '#3B82F6',
+    'FIRST': '#8B5CF6'
+};
+
+new Chart(document.getElementById('classChart'), {
+    type: 'pie',
+    data: {
+        labels: classData.map(item => item.seat_class),
+        datasets: [{
+            data: classData.map(item => item.count),
+            backgroundColor: classData.map(item => classColors[item.seat_class] || '#6B7280')
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { position: 'bottom' }
+        }
+    }
+});
+
+// Daily Bookings Chart
+const dailyData = {{ daily_bookings|safe }};
+new Chart(document.getElementById('dailyBookingsChart'), {
+    type: 'line',
+    data: {
+        labels: dailyData.map(item => {
+            const date = new Date(item.date);
+            return date.toLocaleDateString('en-US', {month: 'short', day: 'numeric'});
+        }),
+        datasets: [{
+            label: 'Bookings',
+            data: dailyData.map(item => item.count),
+            borderColor: '#00A651',
+            backgroundColor: 'rgba(0, 166, 81, 0.1)',
+            fill: true,
+            tension: 0.3
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: { beginAtZero: true, ticks: { stepSize: 1 } }
+        },
+        plugins: {
+            legend: { display: false }
+        }
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,262 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Airport Parking - NAIA{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="relative text-white">
+    <div class="absolute inset-0">
+        <img src="{% static 'images/parked-plane.jpg' %}" alt="Airport Parking" class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-gradient-to-r from-green-900/85 to-green-700/70"></div>
+    </div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative z-10">
+        <div class="grid md:grid-cols-2 gap-8 items-center">
+            <div>
+                <h1 class="text-4xl md:text-5xl font-bold mb-4">
+                    Airport Parking Made Easy
+                </h1>
+                <p class="text-xl text-green-100 mb-8">
+                    Book your parking spot in advance and enjoy stress-free travel.
+                    Save up to 10% when you book online!
+                </p>
+                <div class="flex flex-wrap gap-4">
+                    <a href="#search" class="bg-white text-green-700 px-6 py-3 rounded-lg font-semibold hover:bg-green-50 transition">
+                        Book Now
+                    </a>
+                    <a href="{% url 'parking:pricing' %}" class="border-2 border-white text-white px-6 py-3 rounded-lg font-semibold hover:bg-white hover:text-green-700 transition">
+                        View Pricing
+                    </a>
+                </div>
+            </div>
+            <div class="hidden md:block">
+                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6">
+                    <div class="grid grid-cols-2 gap-4 text-center">
+                        <div class="bg-white/10 rounded-xl p-4">
+                            <div class="text-3xl font-bold">24/7</div>
+                            <div class="text-green-100">Security</div>
+                        </div>
+                        <div class="bg-white/10 rounded-xl p-4">
+                            <div class="text-3xl font-bold">CCTV</div>
+                            <div class="text-green-100">Monitoring</div>
+                        </div>
+                        <div class="bg-white/10 rounded-xl p-4">
+                            <div class="text-3xl font-bold">Free</div>
+                            <div class="text-green-100">Shuttle</div>
+                        </div>
+                        <div class="bg-white/10 rounded-xl p-4">
+                            <div class="text-3xl font-bold">EV</div>
+                            <div class="text-green-100">Charging</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search Section -->
+<div id="search" class="bg-white -mt-8 mx-4 md:mx-auto max-w-4xl rounded-2xl shadow-xl relative z-10">
+    <div class="p-6 md:p-8">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Find Your Parking Spot</h2>
+        <form action="{% url 'parking:search' %}" method="get">
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Check-in</label>
+                    {{ form.check_in_date }}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Check-out</label>
+                    {{ form.check_out_date }}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Vehicle Type</label>
+                    {{ form.vehicle_type }}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Parking Type</label>
+                    {{ form.zone_type }}
+                </div>
+            </div>
+            <div class="mt-6 text-center">
+                <button type="submit" class="bg-green-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-700 transition w-full md:w-auto">
+                    <i class="fas fa-search mr-2"></i> Search Available Parking
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Parking Zones Overview -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <div class="text-center mb-12">
+        <h2 class="text-3xl font-bold text-gray-800 mb-4">Our Parking Zones</h2>
+        <p class="text-gray-600 max-w-2xl mx-auto">
+            Choose from a variety of parking options to suit your needs and budget
+        </p>
+    </div>
+
+    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {% for zone in zones %}
+        <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition overflow-hidden">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-bold text-gray-800">{{ zone.name }}</h3>
+                    <span class="px-2 py-1 text-xs rounded-full
+                        {% if zone.zone_type == 'PREMIUM' %}bg-yellow-100 text-yellow-800
+                        {% elif zone.zone_type == 'ECONOMY' %}bg-blue-100 text-blue-800
+                        {% elif zone.zone_type == 'VALET' %}bg-purple-100 text-purple-800
+                        {% else %}bg-green-100 text-green-800{% endif %}">
+                        {{ zone.get_zone_type_display }}
+                    </span>
+                </div>
+
+                <!-- Availability -->
+                <div class="mb-4">
+                    <div class="flex justify-between text-sm mb-1">
+                        <span class="text-gray-600">Available Spots</span>
+                        <span class="font-medium {% if zone.available_spots < 10 %}text-red-600{% else %}text-green-600{% endif %}">
+                            {{ zone.available_spots }} / {{ zone.total_spots }}
+                        </span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="h-2 rounded-full {% if zone.get_occupancy_percentage >= 90 %}bg-red-500{% elif zone.get_occupancy_percentage >= 70 %}bg-yellow-500{% else %}bg-green-500{% endif %}"
+                             style="width: {{ zone.get_occupancy_percentage }}%"></div>
+                    </div>
+                </div>
+
+                <!-- Features -->
+                <div class="flex flex-wrap gap-2 mb-4">
+                    {% if zone.is_covered %}
+                    <span class="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                        <i class="fas fa-umbrella mr-1"></i> Covered
+                    </span>
+                    {% endif %}
+                    {% if zone.has_ev_charging %}
+                    <span class="px-2 py-1 bg-green-100 text-green-600 text-xs rounded-full">
+                        <i class="fas fa-bolt mr-1"></i> EV
+                    </span>
+                    {% endif %}
+                    {% if zone.has_shuttle %}
+                    <span class="px-2 py-1 bg-blue-100 text-blue-600 text-xs rounded-full">
+                        <i class="fas fa-shuttle-van mr-1"></i> Shuttle
+                    </span>
+                    {% endif %}
+                    {% if zone.has_valet %}
+                    <span class="px-2 py-1 bg-purple-100 text-purple-600 text-xs rounded-full">
+                        <i class="fas fa-concierge-bell mr-1"></i> Valet
+                    </span>
+                    {% endif %}
+                </div>
+
+                <!-- Distance -->
+                {% if zone.distance_to_terminal %}
+                <p class="text-sm text-gray-500 mb-4">
+                    <i class="fas fa-walking mr-1"></i> {{ zone.distance_to_terminal }}m to terminal
+                </p>
+                {% endif %}
+
+                <a href="{% url 'parking:zone_detail' zone.pk %}" class="block text-center bg-green-50 text-green-700 py-2 rounded-lg hover:bg-green-100 transition">
+                    View Details
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full text-center py-12">
+            <i class="fas fa-parking text-4xl text-gray-300 mb-4"></i>
+            <p class="text-gray-500">No parking zones available at the moment.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Services Section -->
+{% if services %}
+<div class="bg-gray-50 py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold text-gray-800 mb-4">Additional Services</h2>
+            <p class="text-gray-600 max-w-2xl mx-auto">
+                Make your parking experience even better with our additional services
+            </p>
+        </div>
+
+        <div class="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {% for service in services %}
+            <div class="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition text-center">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    {% if 'wash' in service.name|lower %}
+                    <i class="fas fa-soap text-2xl text-green-600"></i>
+                    {% elif 'valet' in service.name|lower %}
+                    <i class="fas fa-concierge-bell text-2xl text-green-600"></i>
+                    {% elif 'charge' in service.name|lower or 'ev' in service.name|lower %}
+                    <i class="fas fa-charging-station text-2xl text-green-600"></i>
+                    {% else %}
+                    <i class="fas fa-car text-2xl text-green-600"></i>
+                    {% endif %}
+                </div>
+                <h3 class="font-bold text-gray-800 mb-2">{{ service.name }}</h3>
+                <p class="text-sm text-gray-500 mb-4">{{ service.description|truncatewords:10 }}</p>
+                <div class="text-xl font-bold text-green-600">₦{{ service.price|floatformat:0 }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Why Choose Us -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <div class="text-center mb-12">
+        <h2 class="text-3xl font-bold text-gray-800 mb-4">Why Park With Us?</h2>
+    </div>
+
+    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div class="text-center">
+            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-shield-alt text-2xl text-green-600"></i>
+            </div>
+            <h3 class="font-bold text-gray-800 mb-2">24/7 Security</h3>
+            <p class="text-gray-600 text-sm">Round-the-clock security patrols and CCTV monitoring</p>
+        </div>
+        <div class="text-center">
+            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-percent text-2xl text-green-600"></i>
+            </div>
+            <h3 class="font-bold text-gray-800 mb-2">Online Discounts</h3>
+            <p class="text-gray-600 text-sm">Save up to 10% when you book online in advance</p>
+        </div>
+        <div class="text-center">
+            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-bus text-2xl text-green-600"></i>
+            </div>
+            <h3 class="font-bold text-gray-800 mb-2">Free Shuttle</h3>
+            <p class="text-gray-600 text-sm">Complimentary shuttle service to all terminals</p>
+        </div>
+        <div class="text-center">
+            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-bolt text-2xl text-green-600"></i>
+            </div>
+            <h3 class="font-bold text-gray-800 mb-2">EV Charging</h3>
+            <p class="text-gray-600 text-sm">Electric vehicle charging stations available</p>
+        </div>
+    </div>
+</div>
+
+<!-- CTA Section -->
+<div class="relative text-white py-20">
+    <div class="absolute inset-0">
+        <img src="{% static 'images/airport2.jpg' %}" alt="Airport" class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-green-800/80"></div>
+    </div>
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+        <h2 class="text-3xl font-bold mb-4">Ready to Book Your Parking?</h2>
+        <p class="text-xl text-green-100 mb-8">
+            Secure your spot today and enjoy peace of mind during your travels
+        </p>
+        <a href="#search" class="inline-block bg-white text-green-700 px-8 py-3 rounded-lg font-semibold hover:bg-green-50 transition">
+            Book Now
+        </a>
+    </div>
+</div>
+{% endblock %}

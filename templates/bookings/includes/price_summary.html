@@ -1,0 +1,75 @@
+<!-- Price Summary Sidebar -->
+<div class="bg-white rounded-xl shadow-md p-6 sticky top-24">
+    <h3 class="text-lg font-semibold text-gray-900 mb-4">Price Summary</h3>
+
+    <!-- Flight Info -->
+    <div class="border-b pb-4 mb-4">
+        <div class="flex justify-between items-start mb-2">
+            <div>
+                <p class="font-medium text-gray-900">{{ flight.flight_number }}</p>
+                <p class="text-sm text-gray-500">{{ flight.airline.name }}</p>
+            </div>
+            <span class="status-badge status-{{ flight.status|lower }} text-xs">
+                {{ flight.get_status_display }}
+            </span>
+        </div>
+        <div class="flex items-center text-sm text-gray-600 mt-2">
+            <span class="font-medium">{{ flight.origin.code }}</span>
+            <i class="fas fa-long-arrow-alt-right mx-2 text-naia-green"></i>
+            <span class="font-medium">{{ flight.destination.code }}</span>
+        </div>
+        <p class="text-sm text-gray-500 mt-1">
+            {{ flight.scheduled_departure|date:"D, M d" }} at {{ flight.scheduled_departure|time:"H:i" }}
+        </p>
+    </div>
+
+    <!-- Price Breakdown -->
+    <div class="space-y-3">
+        <div class="flex justify-between text-sm">
+            <span class="text-gray-600">
+                {% if booking_data %}
+                    {{ booking_data.seat_class|default:"ECONOMY" }} x {{ booking_data.passenger_count|default:"1" }}
+                {% else %}
+                    {{ seat_class|default:"ECONOMY" }} x {{ passengers|default:"1" }}
+                {% endif %}
+            </span>
+            <span class="text-gray-900">
+                NGN {% if booking_data %}{{ booking_data.base_price|floatformat:0 }}{% else %}{{ base_price|floatformat:0 }}{% endif %}
+            </span>
+        </div>
+
+        <div class="flex justify-between text-sm">
+            <span class="text-gray-600">Taxes & Fees</span>
+            <span class="text-gray-900">
+                NGN {% if booking_data %}{{ booking_data.taxes|floatformat:0 }}{% else %}{{ taxes|floatformat:0 }}{% endif %}
+            </span>
+        </div>
+
+        <div class="flex justify-between text-sm">
+            <span class="text-gray-600">Service Fee</span>
+            <span class="text-gray-900">
+                NGN {% if booking_data %}{{ booking_data.fees|floatformat:0 }}{% else %}{{ fees|floatformat:0 }}{% endif %}
+            </span>
+        </div>
+    </div>
+
+    <!-- Total -->
+    <div class="border-t mt-4 pt-4">
+        <div class="flex justify-between items-center">
+            <span class="text-lg font-semibold text-gray-900">Total</span>
+            <span class="text-2xl font-bold text-naia-green">
+                NGN {% if booking_data %}{{ booking_data.total|floatformat:0 }}{% else %}{{ total|floatformat:0 }}{% endif %}
+            </span>
+        </div>
+        <p class="text-xs text-gray-500 mt-1">All prices in Nigerian Naira (NGN)</p>
+    </div>
+
+    <!-- Help -->
+    <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+        <p class="text-sm text-gray-600">
+            <i class="fas fa-info-circle text-naia-green mr-2"></i>
+            Need help? Contact our support team at
+            <a href="tel:+2349123456789" class="text-naia-green">+234 9 123 4567</a>
+        </p>
+    </div>
+</div>

@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Payment Successful{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen py-12">
+    <div class="max-w-2xl mx-auto px-4">
+        <!-- Success Card -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-green-500 to-green-600 p-8 text-center">
+                <div class="w-20 h-20 bg-white rounded-full mx-auto mb-4 flex items-center justify-center">
+                    <i class="fas fa-check text-green-500 text-4xl"></i>
+                </div>
+                <h1 class="text-3xl font-bold text-white mb-2">Payment Successful!</h1>
+                <p class="text-green-100">Your booking has been confirmed</p>
+            </div>
+
+            <!-- Details -->
+            <div class="p-8">
+                <!-- Booking Reference -->
+                <div class="text-center mb-8">
+                    <p class="text-gray-500 mb-1">Booking Reference</p>
+                    <p class="text-3xl font-bold font-mono text-gray-900">{{ booking.reference }}</p>
+                </div>
+
+                <!-- Payment Details -->
+                <div class="bg-gray-50 rounded-lg p-6 mb-6">
+                    <h3 class="font-semibold text-gray-900 mb-4">Payment Details</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Transaction Reference</span>
+                            <span class="font-mono text-gray-900">{{ payment.paystack_reference }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Amount Paid</span>
+                            <span class="font-bold text-gray-900">NGN {{ payment.amount|floatformat:2 }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Payment Method</span>
+                            <span class="text-gray-900">
+                                {% if payment.card_last4 %}
+                                {{ payment.card_type|title }} **** {{ payment.card_last4 }}
+                                {% else %}
+                                {{ payment.get_payment_method_display }}
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Date</span>
+                            <span class="text-gray-900">{{ payment.paid_at|date:"M d, Y H:i" }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Flight Summary -->
+                <div class="bg-gray-50 rounded-lg p-6 mb-6">
+                    <h3 class="font-semibold text-gray-900 mb-4">Flight Details</h3>
+                    <div class="flex items-center justify-between">
+                        <div class="text-center">
+                            <p class="text-2xl font-bold text-gray-900">{{ booking.flight.origin.code }}</p>
+                            <p class="text-sm text-gray-500">{{ booking.flight.origin.city }}</p>
+                        </div>
+                        <div class="flex-1 mx-4 flex items-center justify-center">
+                            <i class="fas fa-plane text-naia-green"></i>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-2xl font-bold text-gray-900">{{ booking.flight.destination.code }}</p>
+                            <p class="text-sm text-gray-500">{{ booking.flight.destination.city }}</p>
+                        </div>
+                    </div>
+                    <div class="text-center mt-4">
+                        <p class="text-gray-600">
+                            {{ booking.flight.scheduled_departure|date:"l, F d, Y" }} at {{ booking.flight.scheduled_departure|time:"H:i" }}
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <a href="{% url 'accounts:booking_detail' booking.reference %}"
+                       class="flex-1 bg-naia-green text-white py-3 px-6 rounded-lg font-medium text-center hover:bg-naia-green-dark transition">
+                        <i class="fas fa-ticket-alt mr-2"></i>View E-Ticket
+                    </a>
+                    <a href="{% url 'accounts:dashboard' %}"
+                       class="flex-1 bg-gray-100 text-gray-700 py-3 px-6 rounded-lg font-medium text-center hover:bg-gray-200 transition">
+                        <i class="fas fa-home mr-2"></i>Go to Dashboard
+                    </a>
+                </div>
+
+                <!-- Info -->
+                <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p class="text-sm text-blue-800">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        A confirmation email has been sent to <strong>{{ booking.contact_email }}</strong> with your e-ticket and booking details.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

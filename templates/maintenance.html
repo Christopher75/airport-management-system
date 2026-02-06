@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maintenance - NAIA</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+        }
+        .container {
+            text-align: center;
+            padding: 40px;
+            max-width: 600px;
+        }
+        .logo {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #00A651;
+            margin-bottom: 1rem;
+        }
+        .plane-icon {
+            font-size: 5rem;
+            margin-bottom: 2rem;
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #00A651;
+        }
+        p {
+            font-size: 1.2rem;
+            color: #b0b0b0;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #333;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+        .progress-bar::after {
+            content: '';
+            display: block;
+            width: 30%;
+            height: 100%;
+            background: #00A651;
+            animation: progress 2s ease-in-out infinite;
+        }
+        @keyframes progress {
+            0% { margin-left: -30%; }
+            100% { margin-left: 100%; }
+        }
+        .contact {
+            color: #888;
+            font-size: 0.9rem;
+        }
+        .contact a {
+            color: #00A651;
+            text-decoration: none;
+        }
+        .contact a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">NAIA</div>
+        <div class="plane-icon">&#9992;</div>
+        <h1>Under Maintenance</h1>
+        <p>
+            We're performing scheduled maintenance to improve your experience.
+            Our systems will be back online shortly.
+        </p>
+        <div class="progress-bar"></div>
+        <p class="contact">
+            For urgent matters, please contact us at<br>
+            <a href="tel:+2349123456789">+234 9 123 4567</a> or
+            <a href="mailto:support@naia.ng">support@naia.ng</a>
+        </p>
+    </div>
+</body>
+</html>

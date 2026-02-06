@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Select Flight - Book Now{% endblock %}
+
+{% block content %}
+<!-- Progress -->
+{% include 'bookings/includes/booking_progress.html' with current_step=1 %}
+
+<div class="bg-gray-50 min-h-screen py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid lg:grid-cols-3 gap-8">
+            <!-- Main Content -->
+            <div class="lg:col-span-2">
+                <h1 class="text-2xl font-bold text-gray-900 mb-6">Review Your Selection</h1>
+
+                <!-- Flight Card -->
+                <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+                        <!-- Airline Info -->
+                        <div class="flex items-center mb-4 md:mb-0">
+                            <div class="w-14 h-14 bg-gray-100 rounded-lg flex items-center justify-center mr-4">
+                                {% if flight.airline.logo %}
+                                    <img src="{{ flight.airline.logo.url }}" alt="{{ flight.airline.name }}" class="h-10 w-10 object-contain">
+                                {% else %}
+                                    <i class="fas fa-plane text-naia-green text-xl"></i>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <p class="text-lg font-semibold text-gray-900">{{ flight.flight_number }}</p>
+                                <p class="text-gray-600">{{ flight.airline.name }}</p>
+                            </div>
+                        </div>
+                        <span class="status-badge status-{{ flight.status|lower }}">
+                            {{ flight.get_status_display }}
+                        </span>
+                    </div>
+
+                    <!-- Route Details -->
+                    <div class="bg-gray-50 rounded-xl p-6">
+                        <div class="flex items-center justify-between">
+                            <!-- Departure -->
+                            <div class="text-center">
+                                <p class="text-3xl font-bold text-gray-900">{{ flight.scheduled_departure|time:"H:i" }}</p>
+                                <p class="text-xl font-semibold text-naia-green">{{ flight.origin.code }}</p>
+                                <p class="text-sm text-gray-600">{{ flight.origin.city }}</p>
+                                <p class="text-xs text-gray-500">{{ flight.scheduled_departure|date:"D, M d, Y" }}</p>
+                            </div>
+
+                            <!-- Duration -->
+                            <div class="flex-1 mx-6 text-center">
+                                <p class="text-sm text-gray-500 mb-2">{{ flight.duration }}</p>
+                                <div class="relative">
+                                    <div class="h-0.5 bg-gradient-to-r from-naia-green to-naia-gold"></div>
+                                    <i class="fas fa-plane absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-naia-green bg-gray-50 px-2"></i>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-2">
+                                    {% if flight.is_international %}International{% else %}Domestic{% endif %}
+                                </p>
+                            </div>
+
+                            <!-- Arrival -->
+                            <div class="text-center">
+                                <p class="text-3xl font-bold text-gray-900">{{ flight.scheduled_arrival|time:"H:i" }}</p>
+                                <p class="text-xl font-semibold text-naia-green">{{ flight.destination.code }}</p>
+                                <p class="text-sm text-gray-600">{{ flight.destination.city }}</p>
+                                <p class="text-xs text-gray-500">{{ flight.scheduled_arrival|date:"D, M d, Y" }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Flight Features -->
+                    <div class="flex flex-wrap gap-4 mt-4 text-sm text-gray-600">
+                        {% if flight.aircraft %}
+                        <span class="flex items-center">
+                            <i class="fas fa-plane mr-2"></i>
+                            {{ flight.aircraft.get_aircraft_type_display }}
+                        </span>
+                        {% endif %}
+                        {% if flight.meal_service %}
+                        <span class="flex items-center">
+                            <i class="fas fa-utensils mr-2"></i>
+                            Meal included
+                        </span>
+                        {% endif %}
+                        {% if flight.wifi_available %}
+                        <span class="flex items-center">
+                            <i class="fas fa-wifi mr-2"></i>
+                            WiFi available
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Booking Options Form -->
+                <form method="post" action="{% url 'bookings:select_flight' flight.pk %}">
+                    {% csrf_token %}
+
+                    <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+                        <h2 class="text-lg font-semibold text-gray-900 mb-4">Booking Options</h2>
+
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <!-- Cabin Class -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Cabin Class</label>
+                                <select name="seat_class" id="seat_class"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-naia-green focus:border-naia-green"
+                                        onchange="updatePrice()">
+                                    <option value="ECONOMY" {% if seat_class == 'ECONOMY' %}selected{% endif %}
+                                            data-price="{{ flight.economy_price }}">
+                                        Economy - NGN {{ flight.economy_price|floatformat:0 }}/person
+                                    </option>
+                                    <option value="BUSINESS" {% if seat_class == 'BUSINESS' %}selected{% endif %}
+                                            data-price="{{ flight.business_price }}">
+                                        Business - NGN {{ flight.business_price|floatformat:0 }}/person
+                                    </option>
+                                    <option value="FIRST" {% if seat_class == 'FIRST' %}selected{% endif %}
+                                            data-price="{{ flight.first_class_price }}">
+                                        First Class - NGN {{ flight.first_class_price|floatformat:0 }}/person
+                                    </option>
+                                </select>
+                            </div>
+
+                            <!-- Passengers -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Number of Passengers</label>
+                                <select name="passengers" id="passengers"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-naia-green focus:border-naia-green"
+                                        onchange="updatePrice()">
+                                    {% for i in "123456789" %}
+                                    <option value="{{ i }}" {% if passengers|stringformat:"s" == i %}selected{% endif %}>
+                                        {{ i }} Passenger{% if i != "1" %}s{% endif %}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Continue Button -->
+                    <div class="flex justify-between items-center">
+                        <a href="{% url 'flights:detail' flight.pk %}" class="text-gray-600 hover:text-gray-900">
+                            <i class="fas fa-arrow-left mr-2"></i>Back to Flight
+                        </a>
+                        <button type="submit"
+                                class="bg-naia-green text-white px-8 py-3 rounded-lg font-medium hover:bg-naia-green-dark transition">
+                            Continue to Passengers
+                            <i class="fas fa-arrow-right ml-2"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Price Summary Sidebar -->
+            <div class="lg:col-span-1">
+                {% include 'bookings/includes/price_summary.html' %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

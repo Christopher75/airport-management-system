@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Notifications{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">Notifications</h1>
+                <p class="text-gray-600 mt-1">
+                    {% if unread_count %}
+                    You have {{ unread_count }} unread notification{{ unread_count|pluralize }}
+                    {% else %}
+                    All caught up!
+                    {% endif %}
+                </p>
+            </div>
+            {% if notifications and unread_count %}
+            <form action="{% url 'notifications:mark_all_read' %}" method="post">
+                {% csrf_token %}
+                <button type="submit"
+                        class="text-naia-green hover:underline font-medium">
+                    <i class="fas fa-check-double mr-1"></i>Mark all as read
+                </button>
+            </form>
+            {% endif %}
+        </div>
+
+        {% if notifications %}
+        <!-- Notifications List -->
+        <div class="space-y-4">
+            {% for notification in notifications %}
+            <div class="bg-white rounded-xl shadow-md overflow-hidden {% if not notification.is_read %}border-l-4 border-naia-green{% endif %}">
+                <div class="p-6">
+                    <div class="flex items-start">
+                        <!-- Icon -->
+                        <div class="flex-shrink-0 mr-4">
+                            {% if notification.notification_type == 'BOOKING_CONFIRMATION' %}
+                            <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-ticket-alt text-green-500 text-xl"></i>
+                            </div>
+                            {% elif notification.notification_type == 'PAYMENT_RECEIVED' %}
+                            <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-credit-card text-blue-500 text-xl"></i>
+                            </div>
+                            {% elif notification.notification_type in 'FLIGHT_DELAY,FLIGHT_CANCELLATION' %}
+                            <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-exclamation-triangle text-red-500 text-xl"></i>
+                            </div>
+                            {% elif notification.notification_type == 'FLIGHT_GATE_CHANGE' %}
+                            <div class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-door-open text-yellow-500 text-xl"></i>
+                            </div>
+                            {% elif notification.notification_type == 'CHECKIN_OPEN' %}
+                            <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-clipboard-check text-purple-500 text-xl"></i>
+                            </div>
+                            {% else %}
+                            <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-bell text-gray-500 text-xl"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Content -->
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-900 {% if not notification.is_read %}font-bold{% endif %}">
+                                        {{ notification.title }}
+                                    </h3>
+                                    <p class="text-gray-600 mt-1">{{ notification.message }}</p>
+                                </div>
+                                <span class="text-sm text-gray-400 whitespace-nowrap ml-4">
+                                    {{ notification.created_at|timesince }} ago
+                                </span>
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="mt-4 flex items-center space-x-4">
+                                {% if notification.action_url %}
+                                <form action="{% url 'notifications:mark_read' notification.id %}" method="post" class="inline">
+                                    {% csrf_token %}
+                                    <button type="submit"
+                                            class="bg-naia-green text-white px-4 py-2 rounded-lg font-medium hover:bg-naia-green-dark transition text-sm">
+                                        {{ notification.action_text|default:"View Details" }}
+                                    </button>
+                                </form>
+                                {% endif %}
+
+                                {% if not notification.is_read %}
+                                <form action="{% url 'notifications:mark_read' notification.id %}" method="post" class="inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="redirect" value="{% url 'notifications:list' %}">
+                                    <button type="submit"
+                                            class="text-gray-500 hover:text-gray-700 text-sm">
+                                        <i class="fas fa-check mr-1"></i>Mark as read
+                                    </button>
+                                </form>
+                                {% else %}
+                                <span class="text-gray-400 text-sm">
+                                    <i class="fas fa-check mr-1"></i>Read
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <nav class="mt-8 flex justify-center">
+            <ul class="flex items-center space-x-2">
+                {% if page_obj.has_previous %}
+                <li>
+                    <a href="?page={{ page_obj.previous_page_number }}"
+                       class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                </li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <li>
+                        <span class="px-4 py-2 bg-naia-green text-white rounded-lg">{{ num }}</span>
+                    </li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li>
+                        <a href="?page={{ num }}"
+                           class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">{{ num }}</a>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                <li>
+                    <a href="?page={{ page_obj.next_page_number }}"
+                       class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+
+        {% else %}
+        <!-- Empty State -->
+        <div class="bg-white rounded-xl shadow-md p-12 text-center">
+            <i class="fas fa-bell-slash text-6xl text-gray-300 mb-4"></i>
+            <h3 class="text-xl font-semibold text-gray-900 mb-2">No Notifications</h3>
+            <p class="text-gray-600 mb-6">You don't have any notifications yet.</p>
+            <a href="{% url 'flights:search' %}"
+               class="inline-block bg-naia-green text-white px-6 py-3 rounded-lg font-medium hover:bg-naia-green-dark transition">
+                <i class="fas fa-search mr-2"></i>Search Flights
+            </a>
+        </div>
+        {% endif %}
+
+        <!-- Preferences Link -->
+        <div class="mt-8 text-center">
+            <a href="{% url 'notifications:preferences' %}" class="text-naia-green hover:underline">
+                <i class="fas fa-cog mr-1"></i>Manage notification preferences
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

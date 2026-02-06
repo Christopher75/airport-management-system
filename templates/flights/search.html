@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Flight Search{% endblock %}
+
+{% block content %}
+<!-- Hero Section with Search -->
+<section class="relative py-12">
+    <div class="absolute inset-0">
+        <img src="{% static 'images/airport2.jpg' %}" alt="Airport" class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-gradient-to-b from-naia-green-dark/85 to-naia-green/75"></div>
+    </div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-white mb-2">Find Your Flight</h1>
+            <p class="text-white/80">Search from hundreds of flights to your destination</p>
+        </div>
+
+        <!-- Search Form Card -->
+        <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8">
+            <form method="get" action="{% url 'flights:search' %}" class="space-y-6">
+                <!-- Trip Type -->
+                <div class="flex space-x-6 mb-4">
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="trip_type" value="one_way" class="form-radio text-naia-green"
+                               {% if not search_params.trip_type or search_params.trip_type == 'one_way' %}checked{% endif %}
+                               onchange="toggleReturnDate()">
+                        <span class="ml-2 text-gray-700">One Way</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="trip_type" value="round_trip" class="form-radio text-naia-green"
+                               {% if search_params.trip_type == 'round_trip' %}checked{% endif %}
+                               onchange="toggleReturnDate()">
+                        <span class="ml-2 text-gray-700">Round Trip</span>
+                    </label>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- Origin -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">From</label>
+                        <div class="relative">
+                            <i class="fas fa-plane-departure absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            <select name="origin" id="origin" required
+                                    class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-naia-green focus:border-naia-green appearance-none bg-white">
+                                <option value="">Select origin</option>
+                                {% for airport in airports %}
+                                <option value="{{ airport.code }}" {% if search_params.origin == airport.code %}selected{% endif %}>
+                                    {{ airport.city }} ({{ airport.code }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Swap Button -->
+                    <div class="hidden lg:flex items-end justify-center pb-3">
+                        <button type="button" onclick="swapAirports()" class="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition">
+                            <i class="fas fa-exchange-alt text-naia-green"></i>
+                        </button>
+                    </div>
+
+                    <!-- Destination -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">To</label>
+                        <div class="relative">
+                            <i class="fas fa-plane-arrival absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            <select name="destination" id="destination" required
+                                    class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-naia-green focus:border-naia-green appearance-none bg-white">
+                                <option value="">Select destination</option>
+                                {% for airport in airports %}
+                                <option value="{{ airport.code }}" {% if search_params.destination == airport.code %}selected{% endif %}>
+                                    {{ airport.city }} ({{ airport.code }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Departure Date -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Departure</label>
+                        <div class="relative">
+                            <i class="fas fa-calendar absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            <input type="date" name="departure_date" required
+                                   value="{{ search_params.departure_date|date:'Y-m-d' }}"
+                                   class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-naia-green focus:border-naia-green departure-date">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <!-- Return Date -->
+                    <div id="return-date-container" class="{% if not search_params.trip_type or search_params.trip_type != 'round_trip' %}hidden{% endif %}">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Return</label>
+                        <div class="relative">
+                            <i class="fas fa-calendar absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            <input type="date" name="return_date"
+                                   value="{{ search_params.return_date|date:'Y-m-d' }}"
+                                   class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-naia-green focus:border-naia-green return-date">
+                        </div>
+                    </div>
+
+                    <!-- Passengers -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Passengers</label>
+                        <div class="relative">
+                            <i class="fas fa-users absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            <select name="passengers"
+                                    class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-naia-green focus:border-naia-green appearance-none bg-white">
+                                {% for i in "123456789" %}
+                                <option value="{{ i }}" {% if search_params.passengers|stringformat:"s" == i %}selected{% endif %}>
+                                    {{ i }} Passenger{% if i != "1" %}s{% endif %}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Cabin Class -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Cabin Class</label>
+                        <div class="relative">
+                            <i class="fas fa-chair absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            <select name="seat_class"
+                                    class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-naia-green focus:border-naia-green appearance-none bg-white">
+                                <option value="ECONOMY" {% if search_params.seat_class == 'ECONOMY' %}selected{% endif %}>Economy</option>
+                                <option value="BUSINESS" {% if search_params.seat_class == 'BUSINESS' %}selected{% endif %}>Business</option>
+                                <option value="FIRST" {% if search_params.seat_class == 'FIRST' %}selected{% endif %}>First Class</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Search Button -->
+                    <div class="flex items-end">
+                        <button type="submit"
+                                class="w-full bg-naia-green text-white py-3 px-6 rounded-lg font-medium hover:bg-naia-green-dark transition duration-200 flex items-center justify-center">
+                            <i class="fas fa-search mr-2"></i>
+                            Search Flights
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+
+<!-- Search Results -->
+<section class="py-12 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {% if search_performed %}
+            {% if flights %}
+            <!-- Results Header -->
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900">Available Flights</h2>
+                    <p class="text-gray-600">
+                        {{ flights|length }} flight{{ flights|length|pluralize }} found
+                        {% if search_params.origin and search_params.destination %}
+                            from {{ search_params.origin }} to {{ search_params.destination }}
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="mt-4 sm:mt-0 flex items-center space-x-4">
+                    <span class="text-sm text-gray-500">Sort by:</span>
+                    <select class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-naia-green">
+                        <option>Departure Time</option>
+                        <option>Price (Low to High)</option>
+                        <option>Duration</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Flight Results -->
+            <div class="space-y-4">
+                {% for flight in flights %}
+                    {% include 'flights/includes/flight_card.html' with flight=flight seat_class=search_params.seat_class passengers=search_params.passengers %}
+                {% endfor %}
+            </div>
+            {% else %}
+            <!-- No Results -->
+            <div class="text-center py-16 bg-white rounded-xl">
+                <i class="fas fa-plane-slash text-6xl text-gray-300 mb-4"></i>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">No Flights Found</h3>
+                <p class="text-gray-600 mb-6">
+                    We couldn't find any flights matching your search criteria.
+                    <br>Try adjusting your dates or search for a different route.
+                </p>
+                <a href="{% url 'flights:search' %}"
+                   class="inline-flex items-center text-naia-green hover:text-naia-green-dark font-medium">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Modify Search
+                </a>
+            </div>
+            {% endif %}
+        {% else %}
+        <!-- Initial State -->
+        <div class="text-center py-16">
+            <i class="fas fa-search text-6xl text-gray-300 mb-4"></i>
+            <h3 class="text-xl font-semibold text-gray-900 mb-2">Search for Flights</h3>
+            <p class="text-gray-600">
+                Enter your travel details above to find available flights.
+            </p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Travel Tips -->
+<section class="py-12 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Travel Tips</h3>
+        <div class="grid md:grid-cols-3 gap-6">
+            <div class="flex items-start">
+                <i class="fas fa-lightbulb text-naia-gold text-xl mr-3 mt-1"></i>
+                <div>
+                    <h4 class="font-medium text-gray-900">Book Early</h4>
+                    <p class="text-gray-600 text-sm">Book your flights at least 2 weeks in advance for the best rates.</p>
+                </div>
+            </div>
+            <div class="flex items-start">
+                <i class="fas fa-clock text-naia-gold text-xl mr-3 mt-1"></i>
+                <div>
+                    <h4 class="font-medium text-gray-900">Flexible Dates</h4>
+                    <p class="text-gray-600 text-sm">Being flexible with your travel dates can help you find better deals.</p>
+                </div>
+            </div>
+            <div class="flex items-start">
+                <i class="fas fa-bell text-naia-gold text-xl mr-3 mt-1"></i>
+                <div>
+                    <h4 class="font-medium text-gray-900">Set Alerts</h4>
+                    <p class="text-gray-600 text-sm">Create an account to set price alerts for your preferred routes.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,94 @@
+{% extends "notifications/email/base_email.html" %}
+
+{% block title %}Check-in Now Open - {{ flight.flight_number }}{% endblock %}
+
+{% block content %}
+<h2>Online Check-in is Now Open!</h2>
+
+<p>Dear {{ user.first_name|default:"Valued Customer" }},</p>
+
+<p>
+    Good news! Online check-in is now available for your upcoming flight.
+    Check in now to select your preferred seat and save time at the airport.
+</p>
+
+<!-- Check-in CTA -->
+<div style="text-align: center; padding: 30px; background-color: #f0f8f0; border-radius: 8px; margin: 20px 0;">
+    <p style="margin: 0; font-size: 18px; color: #333;">Check in now for</p>
+    <p style="margin: 10px 0; font-size: 32px; font-weight: bold; color: #006400;">
+        {{ flight.flight_number }}
+    </p>
+    <p style="margin: 0; color: #666;">{{ flight.scheduled_departure|date:"l, F d, Y" }}</p>
+    <a href="{{ site_url }}/dashboard/bookings/{{ booking.reference }}/" class="btn" style="margin-top: 20px;">
+        Check In Now
+    </a>
+</div>
+
+<!-- Flight Details -->
+<div class="flight-card">
+    <p style="margin: 0; font-weight: 600; color: #333;">
+        {{ flight.airline.name }}
+    </p>
+
+    <div class="flight-route">
+        <div>
+            <div class="airport-code">{{ flight.origin.code }}</div>
+            <div class="airport-city">{{ flight.origin.city }}</div>
+        </div>
+        <div class="flight-arrow">&#10132;</div>
+        <div>
+            <div class="airport-code">{{ flight.destination.code }}</div>
+            <div class="airport-city">{{ flight.destination.city }}</div>
+        </div>
+    </div>
+
+    <p style="margin: 0; color: #333;">
+        Departure: <strong>{{ flight.scheduled_departure|time:"H:i" }}</strong> |
+        Arrival: <strong>{{ flight.scheduled_arrival|time:"H:i" }}</strong>
+    </p>
+</div>
+
+<!-- Booking Info -->
+<div class="info-box">
+    <div class="info-row">
+        <span class="info-label">Booking Reference</span>
+        <span class="info-value">{{ booking.reference }}</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Passengers</span>
+        <span class="info-value">{{ booking.passenger_count }}</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Class</span>
+        <span class="info-value">{{ booking.get_seat_class_display }}</span>
+    </div>
+</div>
+
+<!-- Check-in Benefits -->
+<div class="alert alert-success">
+    <strong>Benefits of Online Check-in:</strong>
+    <ul style="margin: 10px 0 0 0; padding-left: 20px;">
+        <li>Skip the queue at the airport</li>
+        <li>Select your preferred seat</li>
+        <li>Get your boarding pass on your phone</li>
+        <li>Check in up to 24 hours before departure</li>
+    </ul>
+</div>
+
+<!-- Reminder -->
+<div class="alert alert-info">
+    <strong>Remember:</strong> Online check-in closes 1 hour before departure.
+    Make sure to check in before then to avoid checking in at the airport.
+</div>
+
+<p style="color: #666; font-size: 14px;">
+    If you have any questions, please contact us at
+    <a href="tel:{{ support_phone }}">{{ support_phone }}</a> or email
+    <a href="mailto:{{ support_email }}">{{ support_email }}</a>.
+</p>
+
+<p style="margin-bottom: 0;">
+    Have a pleasant flight!<br>
+    <strong>The NAIA Team</strong>
+</p>
+{% endblock %}

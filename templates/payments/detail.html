@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Payment Details{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen py-8">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-6">
+            <a href="{% url 'payments:history' %}" class="text-naia-green hover:underline mb-4 inline-block">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Payment History
+            </a>
+            <div class="flex flex-col md:flex-row md:justify-between md:items-center">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Payment Details</h1>
+                    <p class="text-gray-600 mt-1">Reference: <span class="font-mono">{{ payment.paystack_reference }}</span></p>
+                </div>
+                <span class="mt-2 md:mt-0 status-badge status-{{ payment.status|lower }} text-lg px-4 py-2">
+                    {{ payment.get_status_display }}
+                </span>
+            </div>
+        </div>
+
+        <!-- Payment Info Card -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden mb-6">
+            <div class="p-6 border-b bg-gradient-to-r from-naia-green to-naia-green-dark">
+                <div class="text-center">
+                    <p class="text-green-100 text-sm mb-1">Amount Paid</p>
+                    <p class="text-4xl font-bold text-white">NGN {{ payment.amount|floatformat:2 }}</p>
+                </div>
+            </div>
+
+            <div class="p-6">
+                <div class="grid md:grid-cols-2 gap-6">
+                    <!-- Transaction Details -->
+                    <div>
+                        <h3 class="font-semibold text-gray-900 mb-4">Transaction Details</h3>
+                        <dl class="space-y-3">
+                            <div>
+                                <dt class="text-sm text-gray-500">Transaction Reference</dt>
+                                <dd class="font-mono text-gray-900">{{ payment.paystack_reference }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-sm text-gray-500">Payment Method</dt>
+                                <dd class="text-gray-900">{{ payment.get_payment_method_display }}</dd>
+                            </div>
+                            {% if payment.channel %}
+                            <div>
+                                <dt class="text-sm text-gray-500">Channel</dt>
+                                <dd class="text-gray-900 capitalize">{{ payment.channel }}</dd>
+                            </div>
+                            {% endif %}
+                            <div>
+                                <dt class="text-sm text-gray-500">Currency</dt>
+                                <dd class="text-gray-900">{{ payment.currency }}</dd>
+                            </div>
+                        </dl>
+                    </div>
+
+                    <!-- Card/Bank Details -->
+                    <div>
+                        <h3 class="font-semibold text-gray-900 mb-4">Payment Source</h3>
+                        <dl class="space-y-3">
+                            {% if payment.card_last4 %}
+                            <div>
+                                <dt class="text-sm text-gray-500">Card Number</dt>
+                                <dd class="text-gray-900">**** **** **** {{ payment.card_last4 }}</dd>
+                            </div>
+                            {% endif %}
+                            {% if payment.card_type %}
+                            <div>
+                                <dt class="text-sm text-gray-500">Card Type</dt>
+                                <dd class="text-gray-900 capitalize">{{ payment.card_type }}</dd>
+                            </div>
+                            {% endif %}
+                            {% if payment.bank_name %}
+                            <div>
+                                <dt class="text-sm text-gray-500">Bank</dt>
+                                <dd class="text-gray-900">{{ payment.bank_name }}</dd>
+                            </div>
+                            {% endif %}
+                            {% if payment.gateway_response %}
+                            <div>
+                                <dt class="text-sm text-gray-500">Response</dt>
+                                <dd class="text-gray-900">{{ payment.gateway_response }}</dd>
+                            </div>
+                            {% endif %}
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Booking Info Card -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden mb-6">
+            <div class="p-6 border-b">
+                <h3 class="text-lg font-semibold text-gray-900">
+                    <i class="fas fa-plane text-naia-green mr-2"></i>Booking Information
+                </h3>
+            </div>
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <p class="font-bold text-lg text-gray-900">{{ payment.booking.reference }}</p>
+                        <p class="text-gray-500">{{ payment.booking.flight.flight_number }} | {{ payment.booking.flight.airline.name }}</p>
+                    </div>
+                    <a href="{% url 'accounts:booking_detail' payment.booking.reference %}"
+                       class="bg-naia-green text-white px-4 py-2 rounded-lg font-medium hover:bg-naia-green-dark transition">
+                        View Booking
+                    </a>
+                </div>
+
+                <div class="flex items-center justify-between bg-gray-50 rounded-lg p-4">
+                    <div class="text-center">
+                        <p class="text-xl font-bold text-gray-900">{{ payment.booking.flight.origin.code }}</p>
+                        <p class="text-sm text-gray-500">{{ payment.booking.flight.origin.city }}</p>
+                    </div>
+                    <div class="flex-1 mx-4 flex items-center justify-center">
+                        <div class="border-t-2 border-dashed border-gray-300 flex-1"></div>
+                        <i class="fas fa-plane text-naia-green mx-3"></i>
+                        <div class="border-t-2 border-dashed border-gray-300 flex-1"></div>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-xl font-bold text-gray-900">{{ payment.booking.flight.destination.code }}</p>
+                        <p class="text-sm text-gray-500">{{ payment.booking.flight.destination.city }}</p>
+                    </div>
+                </div>
+
+                <p class="text-center text-gray-600 mt-3">
+                    {{ payment.booking.flight.scheduled_departure|date:"l, F d, Y" }} at {{ payment.booking.flight.scheduled_departure|time:"H:i" }}
+                </p>
+            </div>
+        </div>
+
+        <!-- Timestamps Card -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden mb-6">
+            <div class="p-6 border-b">
+                <h3 class="text-lg font-semibold text-gray-900">
+                    <i class="fas fa-clock text-naia-green mr-2"></i>Timeline
+                </h3>
+            </div>
+            <div class="p-6">
+                <div class="space-y-4">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-4">
+                            <i class="fas fa-plus text-blue-500"></i>
+                        </div>
+                        <div>
+                            <p class="font-medium text-gray-900">Payment Created</p>
+                            <p class="text-sm text-gray-500">{{ payment.created_at|date:"M d, Y H:i:s" }}</p>
+                        </div>
+                    </div>
+
+                    {% if payment.paid_at %}
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-4">
+                            <i class="fas fa-check text-green-500"></i>
+                        </div>
+                        <div>
+                            <p class="font-medium text-gray-900">Payment Completed</p>
+                            <p class="text-sm text-gray-500">{{ payment.paid_at|date:"M d, Y H:i:s" }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if payment.refunded_at %}
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center mr-4">
+                            <i class="fas fa-undo text-orange-500"></i>
+                        </div>
+                        <div>
+                            <p class="font-medium text-gray-900">Refund Processed (NGN {{ payment.refund_amount|floatformat:2 }})</p>
+                            <p class="text-sm text-gray-500">{{ payment.refunded_at|date:"M d, Y H:i:s" }}</p>
+                            {% if payment.refund_reason %}
+                            <p class="text-sm text-gray-600">Reason: {{ payment.refund_reason }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        {% if payment.status == 'FAILED' %}
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <div class="flex flex-col sm:flex-row gap-4">
+                <form action="{% url 'payments:retry' payment.paystack_reference %}" method="post" class="flex-1">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="w-full bg-naia-green text-white py-3 px-6 rounded-lg font-medium text-center hover:bg-naia-green-dark transition">
+                        <i class="fas fa-redo mr-2"></i>Retry Payment
+                    </button>
+                </form>
+                <a href="{% url 'core:contact' %}"
+                   class="flex-1 bg-gray-100 text-gray-700 py-3 px-6 rounded-lg font-medium text-center hover:bg-gray-200 transition">
+                    <i class="fas fa-headset mr-2"></i>Contact Support
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

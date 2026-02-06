@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Review Booking{% endblock %}
+
+{% block content %}
+<!-- Progress -->
+{% include 'bookings/includes/booking_progress.html' with current_step=3 %}
+
+<div class="bg-gray-50 min-h-screen py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid lg:grid-cols-3 gap-8">
+            <!-- Main Content -->
+            <div class="lg:col-span-2">
+                <h1 class="text-2xl font-bold text-gray-900 mb-2">Review Your Booking</h1>
+                <p class="text-gray-600 mb-6">Please review all details before proceeding to payment.</p>
+
+                <!-- Flight Summary -->
+                <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                        <i class="fas fa-plane text-naia-green mr-2"></i>
+                        Flight Details
+                    </h2>
+
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                            <div class="flex items-center mb-4 md:mb-0">
+                                <div class="w-12 h-12 bg-white rounded-lg flex items-center justify-center mr-4 shadow-sm">
+                                    <i class="fas fa-plane text-naia-green text-xl"></i>
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-gray-900">{{ flight.flight_number }}</p>
+                                    <p class="text-sm text-gray-600">{{ flight.airline.name }}</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-medium text-gray-900">{{ booking_data.seat_class }} Class</p>
+                                <p class="text-sm text-gray-600">{{ booking_data.passenger_count }} Passenger{{ booking_data.passenger_count|pluralize }}</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-center mt-4 pt-4 border-t">
+                            <div class="text-center">
+                                <p class="text-2xl font-bold text-gray-900">{{ flight.scheduled_departure|time:"H:i" }}</p>
+                                <p class="font-medium text-naia-green">{{ flight.origin.code }}</p>
+                                <p class="text-sm text-gray-500">{{ flight.origin.city }}</p>
+                            </div>
+                            <div class="mx-8 flex flex-col items-center">
+                                <i class="fas fa-plane text-naia-green text-xl"></i>
+                                <p class="text-xs text-gray-500 mt-1">{{ flight.duration }}</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-2xl font-bold text-gray-900">{{ flight.scheduled_arrival|time:"H:i" }}</p>
+                                <p class="font-medium text-naia-green">{{ flight.destination.code }}</p>
+                                <p class="text-sm text-gray-500">{{ flight.destination.city }}</p>
+                            </div>
+                        </div>
+                        <p class="text-center text-sm text-gray-500 mt-2">
+                            {{ flight.scheduled_departure|date:"l, F d, Y" }}
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Passenger Summary -->
+                <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                        <i class="fas fa-users text-naia-green mr-2"></i>
+                        Passengers
+                    </h2>
+
+                    <div class="space-y-4">
+                        {% for passenger in passengers %}
+                        <div class="flex items-start justify-between p-4 bg-gray-50 rounded-lg">
+                            <div class="flex items-start">
+                                <div class="w-10 h-10 bg-naia-green text-white rounded-full flex items-center justify-center mr-4">
+                                    {{ forloop.counter }}
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-900">
+                                        {{ passenger.title }} {{ passenger.first_name }} {{ passenger.last_name }}
+                                    </p>
+                                    <p class="text-sm text-gray-600">
+                                        {{ passenger.passenger_type }} |
+                                        DOB: {{ passenger.date_of_birth }}
+                                    </p>
+                                    {% if passenger.passport_number %}
+                                    <p class="text-sm text-gray-500">
+                                        Passport: {{ passenger.passport_number }}
+                                    </p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <a href="{% url 'bookings:passengers' %}" class="text-naia-green text-sm hover:underline">
+                                Edit
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Contact Information -->
+                <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                        <i class="fas fa-envelope text-naia-green mr-2"></i>
+                        Contact Information
+                    </h2>
+
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-sm text-gray-500">Email</p>
+                            <p class="font-medium text-gray-900">{{ booking_data.contact_email }}</p>
+                        </div>
+                        {% if booking_data.contact_phone %}
+                        <div>
+                            <p class="text-sm text-gray-500">Phone</p>
+                            <p class="font-medium text-gray-900">{{ booking_data.contact_phone }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Terms and Conditions -->
+                <form method="post" action="{% url 'bookings:review' %}">
+                    {% csrf_token %}
+
+                    <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+                        <h2 class="text-lg font-semibold text-gray-900 mb-4">Terms & Conditions</h2>
+
+                        <div class="space-y-4">
+                            <div class="flex items-start">
+                                <input type="checkbox" name="accept_terms" id="accept_terms" required
+                                       class="h-5 w-5 text-naia-green focus:ring-naia-green border-gray-300 rounded mt-0.5">
+                                <label for="accept_terms" class="ml-3 text-sm text-gray-600">
+                                    I have read and agree to the <a href="#" class="text-naia-green hover:underline">Terms of Service</a>,
+                                    <a href="#" class="text-naia-green hover:underline">Fare Rules</a>, and
+                                    <a href="#" class="text-naia-green hover:underline">Privacy Policy</a>. *
+                                </label>
+                            </div>
+                            <div class="flex items-start">
+                                <input type="checkbox" name="confirm_details" id="confirm_details"
+                                       class="h-5 w-5 text-naia-green focus:ring-naia-green border-gray-300 rounded mt-0.5">
+                                <label for="confirm_details" class="ml-3 text-sm text-gray-600">
+                                    I confirm that all passenger details are correct and match their travel documents.
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Important Notes -->
+                        <div class="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                            <h3 class="font-medium text-yellow-800 mb-2">
+                                <i class="fas fa-exclamation-triangle mr-2"></i>
+                                Important Information
+                            </h3>
+                            <ul class="text-sm text-yellow-700 space-y-1">
+                                <li>Passenger names must match travel documents exactly.</li>
+                                <li>For international flights, passports must be valid for at least 6 months.</li>
+                                <li>Check-in opens 24 hours before departure.</li>
+                                <li>Arrive at the airport at least 2 hours (domestic) or 3 hours (international) before departure.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Navigation -->
+                    <div class="flex justify-between items-center">
+                        <a href="{% url 'bookings:passengers' %}" class="text-gray-600 hover:text-gray-900">
+                            <i class="fas fa-arrow-left mr-2"></i>Back to Passengers
+                        </a>
+                        <button type="submit"
+                                class="bg-naia-green text-white px-8 py-3 rounded-lg font-medium hover:bg-naia-green-dark transition">
+                            Proceed to Payment
+                            <i class="fas fa-arrow-right ml-2"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Price Summary Sidebar -->
+            <div class="lg:col-span-1">
+                {% include 'bookings/includes/price_summary.html' %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

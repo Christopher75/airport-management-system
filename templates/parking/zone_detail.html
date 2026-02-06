@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ zone.name }} - Airport Parking - NAIA{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <div class="bg-green-700 text-white py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <nav class="text-sm mb-2">
+                <a href="{% url 'parking:home' %}" class="text-green-200 hover:text-white">Parking</a>
+                <span class="mx-2">/</span>
+                <span>{{ zone.name }}</span>
+            </nav>
+            <h1 class="text-3xl font-bold">{{ zone.name }}</h1>
+            <p class="text-green-100 mt-2">{{ zone.get_zone_type_display }}</p>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="grid lg:grid-cols-3 gap-8">
+            <!-- Main Content -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Zone Details Card -->
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">Zone Details</h2>
+
+                    {% if zone.description %}
+                    <p class="text-gray-600 mb-6">{{ zone.description }}</p>
+                    {% endif %}
+
+                    <!-- Availability -->
+                    <div class="mb-6">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-gray-700">Current Availability</span>
+                            <span class="font-bold {% if zone.available_spots < 10 %}text-red-600{% else %}text-green-600{% endif %}">
+                                {{ zone.available_spots }} / {{ zone.total_spots }} spots
+                            </span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-4">
+                            <div class="h-4 rounded-full {% if zone.get_occupancy_percentage >= 90 %}bg-red-500{% elif zone.get_occupancy_percentage >= 70 %}bg-yellow-500{% else %}bg-green-500{% endif %}"
+                                 style="width: {{ zone.get_occupancy_percentage }}%"></div>
+                        </div>
+                        <p class="text-sm text-gray-500 mt-1">{{ zone.get_occupancy_percentage }}% occupied</p>
+                    </div>
+
+                    <!-- Location Info -->
+                    <div class="grid md:grid-cols-2 gap-4 mb-6">
+                        {% if zone.terminal %}
+                        <div class="flex items-center text-gray-700">
+                            <i class="fas fa-building w-8 text-green-600"></i>
+                            <span>{{ zone.terminal }}</span>
+                        </div>
+                        {% endif %}
+                        {% if zone.floor_level %}
+                        <div class="flex items-center text-gray-700">
+                            <i class="fas fa-layer-group w-8 text-green-600"></i>
+                            <span>{{ zone.floor_level }}</span>
+                        </div>
+                        {% endif %}
+                        {% if zone.distance_to_terminal %}
+                        <div class="flex items-center text-gray-700">
+                            <i class="fas fa-walking w-8 text-green-600"></i>
+                            <span>{{ zone.distance_to_terminal }}m to terminal</span>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Features -->
+                    <h3 class="font-bold text-gray-800 mb-3">Features & Amenities</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        <div class="flex items-center {% if zone.is_covered %}text-green-600{% else %}text-gray-400{% endif %}">
+                            <i class="fas fa-umbrella w-8"></i>
+                            <span>{% if zone.is_covered %}Covered{% else %}Open Air{% endif %}</span>
+                        </div>
+                        <div class="flex items-center {% if zone.has_cctv %}text-green-600{% else %}text-gray-400{% endif %}">
+                            <i class="fas fa-video w-8"></i>
+                            <span>{% if zone.has_cctv %}CCTV Monitored{% else %}No CCTV{% endif %}</span>
+                        </div>
+                        <div class="flex items-center {% if zone.has_security %}text-green-600{% else %}text-gray-400{% endif %}">
+                            <i class="fas fa-shield-alt w-8"></i>
+                            <span>{% if zone.has_security %}Security Patrol{% else %}No Patrol{% endif %}</span>
+                        </div>
+                        <div class="flex items-center {% if zone.has_shuttle %}text-green-600{% else %}text-gray-400{% endif %}">
+                            <i class="fas fa-shuttle-van w-8"></i>
+                            <span>{% if zone.has_shuttle %}Free Shuttle{% else %}No Shuttle{% endif %}</span>
+                        </div>
+                        <div class="flex items-center {% if zone.has_ev_charging %}text-green-600{% else %}text-gray-400{% endif %}">
+                            <i class="fas fa-charging-station w-8"></i>
+                            <span>{% if zone.has_ev_charging %}EV Charging{% else %}No EV Charging{% endif %}</span>
+                        </div>
+                        <div class="flex items-center {% if zone.has_car_wash %}text-green-600{% else %}text-gray-400{% endif %}">
+                            <i class="fas fa-soap w-8"></i>
+                            <span>{% if zone.has_car_wash %}Car Wash{% else %}No Car Wash{% endif %}</span>
+                        </div>
+                        <div class="flex items-center {% if zone.has_valet %}text-green-600{% else %}text-gray-400{% endif %}">
+                            <i class="fas fa-concierge-bell w-8"></i>
+                            <span>{% if zone.has_valet %}Valet Available{% else %}No Valet{% endif %}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pricing Table -->
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">Pricing</h2>
+
+                    {% if pricing %}
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="bg-gray-50">
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Vehicle Type</th>
+                                    <th class="px-4 py-3 text-right text-sm font-semibold text-gray-700">Hourly</th>
+                                    <th class="px-4 py-3 text-right text-sm font-semibold text-gray-700">Daily</th>
+                                    <th class="px-4 py-3 text-right text-sm font-semibold text-gray-700">Weekly</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                                {% for price in pricing %}
+                                <tr>
+                                    <td class="px-4 py-3 text-gray-800">{{ price.get_vehicle_type_display }}</td>
+                                    <td class="px-4 py-3 text-right text-gray-800">₦{{ price.hourly_rate|floatformat:0 }}</td>
+                                    <td class="px-4 py-3 text-right text-gray-800">₦{{ price.daily_rate|floatformat:0 }}</td>
+                                    <td class="px-4 py-3 text-right text-gray-800">
+                                        {% if price.weekly_rate %}₦{{ price.weekly_rate|floatformat:0 }}{% else %}-{% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mt-4 bg-green-50 rounded-lg p-4">
+                        <p class="text-sm text-green-700">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            Book online and save up to 10% on your parking! Grace period of 15 minutes applies.
+                        </p>
+                    </div>
+                    {% else %}
+                    <p class="text-gray-500">Pricing information not available. Please contact us for rates.</p>
+                    {% endif %}
+                </div>
+
+                <!-- Services -->
+                {% if services %}
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">Additional Services</h2>
+
+                    <div class="grid md:grid-cols-2 gap-4">
+                        {% for service in services %}
+                        <div class="border border-gray-200 rounded-lg p-4 flex items-center justify-between">
+                            <div>
+                                <h4 class="font-semibold text-gray-800">{{ service.name }}</h4>
+                                {% if service.description %}
+                                <p class="text-sm text-gray-500">{{ service.description|truncatewords:10 }}</p>
+                                {% endif %}
+                            </div>
+                            <div class="text-right">
+                                <span class="text-lg font-bold text-green-600">₦{{ service.price|floatformat:0 }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Booking Sidebar -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-xl shadow-md p-6 sticky top-4">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Book This Zone</h3>
+
+                    {% if zone.is_full %}
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-center mb-4">
+                        <i class="fas fa-exclamation-circle text-red-500 text-2xl mb-2"></i>
+                        <p class="text-red-700 font-semibold">This zone is currently full</p>
+                        <p class="text-red-600 text-sm">Please check other zones</p>
+                    </div>
+                    <a href="{% url 'parking:search' %}" class="block text-center bg-gray-200 text-gray-700 py-3 rounded-lg">
+                        Find Other Zones
+                    </a>
+                    {% else %}
+                    <form action="{% url 'parking:create_reservation' %}" method="get">
+                        <input type="hidden" name="zone" value="{{ zone.pk }}">
+
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Check-in Date & Time</label>
+                                <input type="datetime-local" name="check_in_date" value="{{ check_in_date }}"
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                       required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Check-out Date & Time</label>
+                                <input type="datetime-local" name="check_out_date" value="{{ check_out_date }}"
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                       required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Vehicle Type</label>
+                                <select name="vehicle_type"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                                    <option value="CAR" {% if vehicle_type == 'CAR' %}selected{% endif %}>Car/Sedan</option>
+                                    <option value="SUV" {% if vehicle_type == 'SUV' %}selected{% endif %}>SUV/Crossover</option>
+                                    <option value="VAN" {% if vehicle_type == 'VAN' %}selected{% endif %}>Van/Minivan</option>
+                                    <option value="TRUCK" {% if vehicle_type == 'TRUCK' %}selected{% endif %}>Truck/Pickup</option>
+                                    <option value="MOTORCYCLE" {% if vehicle_type == 'MOTORCYCLE' %}selected{% endif %}>Motorcycle</option>
+                                    <option value="ELECTRIC" {% if vehicle_type == 'ELECTRIC' %}selected{% endif %}>Electric Vehicle</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <button type="submit"
+                                class="w-full mt-6 bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition">
+                            Continue to Booking
+                        </button>
+                    </form>
+
+                    <p class="text-center text-sm text-gray-500 mt-4">
+                        <i class="fas fa-lock mr-1"></i> Secure booking
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

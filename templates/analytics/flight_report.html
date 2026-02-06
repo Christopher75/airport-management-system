@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Flight Report - NAIA Analytics{% endblock %}
+
+{% block content %}
+<div class="bg-gray-100 min-h-screen py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <a href="{% url 'analytics:dashboard' %}" class="text-naia-green hover:underline mb-4 inline-block">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+            </a>
+            <h1 class="text-3xl font-bold text-gray-900">Flight Operations Report</h1>
+            <p class="text-gray-600">Flight performance and operational metrics</p>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500">On-Time Performance</p>
+                        <p class="text-3xl font-bold text-naia-green">{{ on_time_performance|floatformat:1 }}%</p>
+                    </div>
+                    <i class="fas fa-clock text-4xl text-green-200"></i>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500">Completed Flights</p>
+                        <p class="text-3xl font-bold text-blue-600">{{ total_completed_flights }}</p>
+                        <p class="text-sm text-gray-500">Last 30 days</p>
+                    </div>
+                    <i class="fas fa-check-circle text-4xl text-blue-200"></i>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500">Avg Load Factor</p>
+                        <p class="text-3xl font-bold text-purple-600">{{ avg_load_factor|floatformat:1 }}%</p>
+                    </div>
+                    <i class="fas fa-users text-4xl text-purple-200"></i>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500">Active Routes</p>
+                        <p class="text-3xl font-bold text-yellow-600">{{ busiest_routes|length }}</p>
+                    </div>
+                    <i class="fas fa-route text-4xl text-yellow-200"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- Flights by Status -->
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Flight Status Distribution (Next 7 Days)</h2>
+                <div style="height: 300px;">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Flights per Day -->
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Daily Flight Operations</h2>
+                <div style="height: 300px;">
+                    <canvas id="dailyFlightsChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Busiest Routes -->
+        <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Busiest Routes</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rank</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Route</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Flights</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Passengers</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Popularity</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for route in busiest_routes %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="{% if forloop.counter <= 3 %}text-naia-green font-bold{% else %}text-gray-600{% endif %}">
+                                    #{{ forloop.counter }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="font-bold text-naia-green">{{ route.origin__code }}</span>
+                                <i class="fas fa-plane mx-2 text-gray-400"></i>
+                                <span class="font-bold text-blue-600">{{ route.destination__code }}</span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap font-medium">{{ route.flight_count }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ route.passenger_count }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                    {% if busiest_routes.0.flight_count > 0 %}
+                                    <div class="bg-naia-green h-2.5 rounded-full"
+                                         style="width: {% widthratio route.flight_count busiest_routes.0.flight_count 100 %}%"></div>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="px-6 py-12 text-center text-gray-500">No route data available</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Flight Status Breakdown -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Flight Status Breakdown</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                {% for status in flights_by_status %}
+                <div class="p-4 bg-gray-50 rounded-lg text-center">
+                    <p class="text-3xl font-bold
+                        {% if status.status == 'SCHEDULED' %}text-gray-600
+                        {% elif status.status == 'DEPARTED' %}text-blue-600
+                        {% elif status.status == 'IN_FLIGHT' %}text-purple-600
+                        {% elif status.status == 'ARRIVED' %}text-green-600
+                        {% elif status.status == 'DELAYED' %}text-yellow-600
+                        {% elif status.status == 'CANCELLED' %}text-red-600
+                        {% else %}text-gray-600{% endif %}">
+                        {{ status.count }}
+                    </p>
+                    <p class="text-sm text-gray-500 mt-1">{{ status.status|title }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Status Chart
+const statusData = {{ flights_by_status|safe }};
+const statusColors = {
+    'SCHEDULED': '#6B7280',
+    'CHECK_IN_OPEN': '#10B981',
+    'BOARDING': '#F59E0B',
+    'DEPARTED': '#3B82F6',
+    'IN_FLIGHT': '#8B5CF6',
+    'ARRIVED': '#10B981',
+    'DELAYED': '#EF4444',
+    'CANCELLED': '#DC2626'
+};
+
+new Chart(document.getElementById('statusChart'), {
+    type: 'doughnut',
+    data: {
+        labels: statusData.map(item => item.status.replace('_', ' ')),
+        datasets: [{
+            data: statusData.map(item => item.count),
+            backgroundColor: statusData.map(item => statusColors[item.status] || '#6B7280')
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { position: 'right' }
+        }
+    }
+});
+
+// Daily Flights Chart
+const dailyData = {{ flights_per_day|safe }};
+new Chart(document.getElementById('dailyFlightsChart'), {
+    type: 'bar',
+    data: {
+        labels: dailyData.map(item => {
+            const date = new Date(item.date);
+            return date.toLocaleDateString('en-US', {weekday: 'short', month: 'short', day: 'numeric'});
+        }),
+        datasets: [{
+            label: 'Flights',
+            data: dailyData.map(item => item.count),
+            backgroundColor: 'rgba(59, 130, 246, 0.8)',
+            borderColor: '#3B82F6',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: { beginAtZero: true, ticks: { stepSize: 1 } }
+        }
+    }
+});
+</script>
+{% endblock %}

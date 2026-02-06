@@ -1,0 +1,311 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Booking {{ booking.reference }}{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-6">
+            <a href="{% url 'accounts:bookings' %}" class="text-naia-green hover:underline mb-4 inline-block">
+                <i class="fas fa-arrow-left mr-2"></i>Back to My Bookings
+            </a>
+            <div class="flex flex-col md:flex-row md:justify-between md:items-center">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Booking Details</h1>
+                    <p class="text-gray-600 mt-1">Reference: <span class="font-mono font-bold">{{ booking.reference }}</span></p>
+                </div>
+                <span class="mt-2 md:mt-0 status-badge status-{{ booking.status|lower }} text-lg px-4 py-2">
+                    {{ booking.get_status_display }}
+                </span>
+            </div>
+        </div>
+
+        <!-- Flight Information -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden mb-6">
+            <div class="p-6 border-b bg-gradient-to-r from-naia-green to-naia-green-dark">
+                <h2 class="text-lg font-semibold text-white">
+                    <i class="fas fa-plane mr-2"></i>Flight Information
+                </h2>
+            </div>
+            <div class="p-6">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+                    <div class="flex items-center mb-4 md:mb-0">
+                        <div class="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center mr-4">
+                            {% if booking.flight.airline.logo %}
+                            <img src="{{ booking.flight.airline.logo.url }}" alt="{{ booking.flight.airline.name }}" class="max-w-full max-h-full p-2">
+                            {% else %}
+                            <i class="fas fa-plane text-naia-green text-2xl"></i>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <p class="font-bold text-xl text-gray-900">{{ booking.flight.flight_number }}</p>
+                            <p class="text-gray-600">{{ booking.flight.airline.name }}</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-lg font-medium text-gray-900">{{ booking.flight.scheduled_departure|date:"l, F d, Y" }}</p>
+                        <p class="text-gray-500">{{ booking.get_seat_class_display }} Class</p>
+                    </div>
+                </div>
+
+                <!-- Route Display -->
+                <div class="flex items-center justify-between bg-gray-50 rounded-xl p-6">
+                    <div class="text-center">
+                        <p class="text-3xl font-bold text-gray-900">{{ booking.flight.scheduled_departure|time:"H:i" }}</p>
+                        <p class="text-2xl font-bold text-naia-green">{{ booking.flight.origin.code }}</p>
+                        <p class="text-gray-600">{{ booking.flight.origin.city }}</p>
+                    </div>
+                    <div class="flex-1 mx-6">
+                        <div class="flex items-center">
+                            <div class="flex-1 border-t-2 border-dashed border-gray-300"></div>
+                            <div class="mx-4 text-center">
+                                <i class="fas fa-plane text-naia-green text-xl"></i>
+                                <p class="text-sm text-gray-500">{{ booking.flight.duration }}</p>
+                            </div>
+                            <div class="flex-1 border-t-2 border-dashed border-gray-300"></div>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-3xl font-bold text-gray-900">{{ booking.flight.scheduled_arrival|time:"H:i" }}</p>
+                        <p class="text-2xl font-bold text-naia-green">{{ booking.flight.destination.code }}</p>
+                        <p class="text-gray-600">{{ booking.flight.destination.city }}</p>
+                    </div>
+                </div>
+
+                <!-- Flight Details Grid -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+                    {% if booking.flight.departure_gate %}
+                    <div class="bg-gray-50 rounded-lg p-4 text-center">
+                        <p class="text-sm text-gray-500">Gate</p>
+                        <p class="text-xl font-bold text-gray-900">{{ booking.flight.departure_gate.number }}</p>
+                    </div>
+                    {% endif %}
+                    {% if booking.flight.departure_terminal %}
+                    <div class="bg-gray-50 rounded-lg p-4 text-center">
+                        <p class="text-sm text-gray-500">Terminal</p>
+                        <p class="text-xl font-bold text-gray-900">{{ booking.flight.departure_terminal }}</p>
+                    </div>
+                    {% endif %}
+                    {% if booking.flight.aircraft %}
+                    <div class="bg-gray-50 rounded-lg p-4 text-center">
+                        <p class="text-sm text-gray-500">Aircraft</p>
+                        <p class="text-xl font-bold text-gray-900">{{ booking.flight.aircraft.model }}</p>
+                    </div>
+                    {% endif %}
+                    <div class="bg-gray-50 rounded-lg p-4 text-center">
+                        <p class="text-sm text-gray-500">Status</p>
+                        <p class="text-xl font-bold text-gray-900">{{ booking.flight.get_status_display }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Passengers -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden mb-6">
+            <div class="p-6 border-b">
+                <h2 class="text-lg font-semibold text-gray-900">
+                    <i class="fas fa-users text-naia-green mr-2"></i>Passengers ({{ passengers|length }})
+                </h2>
+            </div>
+            <div class="divide-y">
+                {% for passenger in passengers %}
+                <div class="p-6">
+                    <div class="flex flex-col md:flex-row md:justify-between md:items-start">
+                        <div class="mb-4 md:mb-0">
+                            <p class="font-bold text-lg text-gray-900">
+                                {{ passenger.get_title_display }} {{ passenger.first_name }} {{ passenger.last_name }}
+                            </p>
+                            <p class="text-gray-600">{{ passenger.get_passenger_type_display }}</p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 text-sm">
+                            {% if passenger.passport_number %}
+                            <div>
+                                <p class="text-gray-500">Passport</p>
+                                <p class="font-medium text-gray-900">{{ passenger.passport_number }}</p>
+                            </div>
+                            {% endif %}
+                            {% if passenger.nationality %}
+                            <div>
+                                <p class="text-gray-500">Nationality</p>
+                                <p class="font-medium text-gray-900">{{ passenger.nationality }}</p>
+                            </div>
+                            {% endif %}
+                            {% if passenger.date_of_birth %}
+                            <div>
+                                <p class="text-gray-500">Date of Birth</p>
+                                <p class="font-medium text-gray-900">{{ passenger.date_of_birth|date:"M d, Y" }}</p>
+                            </div>
+                            {% endif %}
+                            {% if passenger.seat_number %}
+                            <div>
+                                <p class="text-gray-500">Seat</p>
+                                <p class="font-medium text-gray-900">{{ passenger.seat_number }}</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Contact Information -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden mb-6">
+            <div class="p-6 border-b">
+                <h2 class="text-lg font-semibold text-gray-900">
+                    <i class="fas fa-address-card text-naia-green mr-2"></i>Contact Information
+                </h2>
+            </div>
+            <div class="p-6">
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <p class="text-sm text-gray-500">Email</p>
+                        <p class="font-medium text-gray-900">{{ booking.contact_email }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Phone</p>
+                        <p class="font-medium text-gray-900">{{ booking.contact_phone }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Summary -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden mb-6">
+            <div class="p-6 border-b">
+                <h2 class="text-lg font-semibold text-gray-900">
+                    <i class="fas fa-receipt text-naia-green mr-2"></i>Payment Summary
+                </h2>
+            </div>
+            <div class="p-6">
+                <div class="space-y-3">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Base Fare ({{ passengers|length }} passenger{{ passengers|length|pluralize }})</span>
+                        <span class="text-gray-900">₦{{ booking.base_price|floatformat:2 }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Taxes & Fees</span>
+                        <span class="text-gray-900">₦{{ booking.taxes|floatformat:2 }}</span>
+                    </div>
+                    {% if booking.discount %}
+                    <div class="flex justify-between text-green-600">
+                        <span>Discount</span>
+                        <span>-₦{{ booking.discount|floatformat:2 }}</span>
+                    </div>
+                    {% endif %}
+                    <hr class="my-3">
+                    <div class="flex justify-between text-lg font-bold">
+                        <span class="text-gray-900">Total Amount</span>
+                        <span class="text-naia-green">₦{{ booking.total_price|floatformat:2 }}</span>
+                    </div>
+                </div>
+
+                {% if booking.payment_status %}
+                <div class="mt-4 pt-4 border-t">
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">Payment Status</span>
+                        <span class="status-badge status-{{ booking.payment_status|lower }}">
+                            {{ booking.get_payment_status_display }}
+                        </span>
+                    </div>
+                    {% if booking.payment_reference %}
+                    <div class="flex items-center justify-between mt-2">
+                        <span class="text-gray-600">Payment Reference</span>
+                        <span class="font-mono text-gray-900">{{ booking.payment_reference }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden">
+            <div class="p-6">
+                <div class="flex flex-wrap gap-4">
+                    {% if booking.status == 'CONFIRMED' or booking.status == 'CHECKED_IN' or booking.status == 'COMPLETED' %}
+                    <a href="{% url 'bookings:eticket' booking.reference %}" class="bg-naia-green text-white px-6 py-3 rounded-lg font-medium hover:bg-naia-green-dark transition">
+                        <i class="fas fa-download mr-2"></i>Download E-Ticket
+                    </a>
+                    <button onclick="window.print()" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition">
+                        <i class="fas fa-print mr-2"></i>Print Page
+                    </button>
+                    {% endif %}
+
+                    {% if booking.status == 'CONFIRMED' and booking.flight.scheduled_departure > now %}
+                    <a href="#" class="bg-purple-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-purple-700 transition">
+                        <i class="fas fa-chair mr-2"></i>Manage Seats
+                    </a>
+                    {% endif %}
+
+                    {% if booking.status == 'PENDING' or booking.status == 'CONFIRMED' %}
+                    <button type="button" class="border border-red-500 text-red-500 px-6 py-3 rounded-lg font-medium hover:bg-red-50 transition"
+                            onclick="document.getElementById('cancel-modal').classList.remove('hidden')">
+                        <i class="fas fa-times mr-2"></i>Cancel Booking
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Important Information -->
+        <div class="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-6">
+            <h3 class="font-semibold text-blue-900 mb-3">
+                <i class="fas fa-info-circle mr-2"></i>Important Information
+            </h3>
+            <ul class="text-sm text-blue-800 space-y-2">
+                <li><i class="fas fa-check mr-2"></i>Please arrive at the airport at least 2 hours before domestic flights and 3 hours before international flights.</li>
+                <li><i class="fas fa-check mr-2"></i>Carry a valid government-issued photo ID along with your booking confirmation.</li>
+                <li><i class="fas fa-check mr-2"></i>Check-in opens 24 hours before departure and closes 1 hour before.</li>
+                <li><i class="fas fa-check mr-2"></i>For any assistance, contact our support team at support@naia.ng</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Cancel Booking Modal -->
+{% if booking.status == 'PENDING' or booking.status == 'CONFIRMED' %}
+<div id="cancel-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+    <div class="bg-white rounded-xl max-w-md w-full mx-4 p-6">
+        <h3 class="text-xl font-bold text-gray-800 mb-4">
+            <i class="fas fa-exclamation-triangle text-red-500 mr-2"></i>Cancel Booking?
+        </h3>
+        <p class="text-gray-600 mb-4">
+            Are you sure you want to cancel booking <strong>{{ booking.reference }}</strong>?
+            This action cannot be undone.
+        </p>
+
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+            <p class="text-sm text-yellow-800">
+                <strong>Cancellation Policy:</strong> Refunds may take 5-10 business days to process.
+                Cancellation fees may apply depending on the fare rules.
+            </p>
+        </div>
+
+        <form action="{% url 'bookings:cancel' booking.reference %}" method="post">
+            {% csrf_token %}
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Reason for Cancellation (Optional)</label>
+                <textarea name="reason" rows="3"
+                          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-naia-green"
+                          placeholder="Tell us why you're cancelling..."></textarea>
+            </div>
+
+            <div class="flex gap-4">
+                <button type="button"
+                        onclick="document.getElementById('cancel-modal').classList.add('hidden')"
+                        class="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium">
+                    Keep Booking
+                </button>
+                <button type="submit"
+                        class="flex-1 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium">
+                    <i class="fas fa-times mr-2"></i>Cancel Booking
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

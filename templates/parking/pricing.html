@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Parking Pricing - NAIA{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <div class="bg-green-700 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h1 class="text-4xl font-bold mb-4">Parking Pricing</h1>
+            <p class="text-xl text-green-100 max-w-2xl mx-auto">
+                Transparent pricing for all our parking zones. Book online and save up to 10%!
+            </p>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <!-- Key Info -->
+        <div class="bg-white rounded-xl shadow-md p-6 mb-12">
+            <div class="grid md:grid-cols-4 gap-6 text-center">
+                <div>
+                    <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                        <i class="fas fa-percent text-green-600"></i>
+                    </div>
+                    <h3 class="font-bold text-gray-800">10% Online Discount</h3>
+                    <p class="text-sm text-gray-500">Book online to save</p>
+                </div>
+                <div>
+                    <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                        <i class="fas fa-clock text-green-600"></i>
+                    </div>
+                    <h3 class="font-bold text-gray-800">15 Min Grace Period</h3>
+                    <p class="text-sm text-gray-500">Free entry/exit time</p>
+                </div>
+                <div>
+                    <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                        <i class="fas fa-shield-alt text-green-600"></i>
+                    </div>
+                    <h3 class="font-bold text-gray-800">24/7 Security</h3>
+                    <p class="text-sm text-gray-500">CCTV & patrols</p>
+                </div>
+                <div>
+                    <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                        <i class="fas fa-times-circle text-green-600"></i>
+                    </div>
+                    <h3 class="font-bold text-gray-800">Free Cancellation</h3>
+                    <p class="text-sm text-gray-500">Up to 2 hours before</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pricing Tables by Zone Type -->
+        {% for zone_type, type_zones in zone_types.items %}
+        <div class="mb-12">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">{{ zone_type }} Parking</h2>
+
+            <div class="grid lg:grid-cols-2 gap-6">
+                {% for zone in type_zones %}
+                <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                    <div class="bg-gradient-to-r from-green-600 to-green-700 text-white p-4">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h3 class="text-xl font-bold">{{ zone.name }}</h3>
+                                <p class="text-green-100 text-sm">{{ zone.code }}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm text-green-100">Available</p>
+                                <p class="font-bold">{{ zone.available_spots }} / {{ zone.total_spots }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-4">
+                        <!-- Features -->
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            {% if zone.is_covered %}
+                            <span class="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                                <i class="fas fa-umbrella mr-1"></i> Covered
+                            </span>
+                            {% endif %}
+                            {% if zone.has_ev_charging %}
+                            <span class="px-2 py-1 bg-green-100 text-green-600 text-xs rounded-full">
+                                <i class="fas fa-bolt mr-1"></i> EV Charging
+                            </span>
+                            {% endif %}
+                            {% if zone.has_shuttle %}
+                            <span class="px-2 py-1 bg-blue-100 text-blue-600 text-xs rounded-full">
+                                <i class="fas fa-shuttle-van mr-1"></i> Shuttle
+                            </span>
+                            {% endif %}
+                            {% if zone.has_valet %}
+                            <span class="px-2 py-1 bg-purple-100 text-purple-600 text-xs rounded-full">
+                                <i class="fas fa-concierge-bell mr-1"></i> Valet
+                            </span>
+                            {% endif %}
+                            {% if zone.distance_to_terminal %}
+                            <span class="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                                <i class="fas fa-walking mr-1"></i> {{ zone.distance_to_terminal }}m
+                            </span>
+                            {% endif %}
+                        </div>
+
+                        <!-- Pricing Table -->
+                        {% if zone.pricing.all %}
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="bg-gray-50">
+                                    <th class="px-3 py-2 text-left text-gray-600">Vehicle</th>
+                                    <th class="px-3 py-2 text-right text-gray-600">Hourly</th>
+                                    <th class="px-3 py-2 text-right text-gray-600">Daily</th>
+                                    <th class="px-3 py-2 text-right text-gray-600">Weekly</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for price in zone.pricing.all %}
+                                {% if price.is_active %}
+                                <tr class="border-b border-gray-100">
+                                    <td class="px-3 py-2 text-gray-800">{{ price.get_vehicle_type_display }}</td>
+                                    <td class="px-3 py-2 text-right font-semibold text-gray-800">₦{{ price.hourly_rate|floatformat:0 }}</td>
+                                    <td class="px-3 py-2 text-right font-semibold text-gray-800">₦{{ price.daily_rate|floatformat:0 }}</td>
+                                    <td class="px-3 py-2 text-right font-semibold text-gray-800">
+                                        {% if price.weekly_rate %}₦{{ price.weekly_rate|floatformat:0 }}{% else %}-{% endif %}
+                                    </td>
+                                </tr>
+                                {% endif %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        {% else %}
+                        <p class="text-gray-500 text-sm">Contact us for pricing</p>
+                        {% endif %}
+
+                        <div class="mt-4">
+                            <a href="{% url 'parking:zone_detail' zone.pk %}"
+                               class="block text-center bg-green-50 text-green-700 py-2 rounded-lg hover:bg-green-100 transition">
+                                Book This Zone
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-12">
+            <i class="fas fa-parking text-5xl text-gray-300 mb-4"></i>
+            <p class="text-gray-500">No parking zones available at the moment.</p>
+        </div>
+        {% endfor %}
+
+        <!-- FAQ Section -->
+        <div class="mt-12 bg-white rounded-xl shadow-md p-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Frequently Asked Questions</h2>
+
+            <div class="space-y-4">
+                <div class="border-b pb-4">
+                    <h4 class="font-semibold text-gray-800 mb-2">How is the parking fee calculated?</h4>
+                    <p class="text-gray-600 text-sm">
+                        Parking fees are calculated based on the duration of your stay. Hourly rates apply for stays under 24 hours,
+                        daily rates for stays between 24 hours and 7 days, and weekly rates for stays of 7 days or more.
+                    </p>
+                </div>
+                <div class="border-b pb-4">
+                    <h4 class="font-semibold text-gray-800 mb-2">What is the grace period?</h4>
+                    <p class="text-gray-600 text-sm">
+                        All zones include a 15-minute grace period at entry and exit. This allows you time to find your spot
+                        and load/unload your vehicle without incurring additional charges.
+                    </p>
+                </div>
+                <div class="border-b pb-4">
+                    <h4 class="font-semibold text-gray-800 mb-2">How do I get the online discount?</h4>
+                    <p class="text-gray-600 text-sm">
+                        Simply book your parking online through our website before arrival. The 10% discount is automatically
+                        applied to your booking. Walk-in customers pay the standard rate.
+                    </p>
+                </div>
+                <div class="border-b pb-4">
+                    <h4 class="font-semibold text-gray-800 mb-2">Can I extend my parking reservation?</h4>
+                    <p class="text-gray-600 text-sm">
+                        Yes, you can extend your parking stay. Please contact our parking office or update your reservation
+                        online before your original check-out time to avoid overstay charges.
+                    </p>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-gray-800 mb-2">What is your cancellation policy?</h4>
+                    <p class="text-gray-600 text-sm">
+                        Free cancellation is available up to 2 hours before your scheduled check-in time. Cancellations made
+                        within 2 hours of check-in may be subject to charges.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- CTA -->
+        <div class="mt-12 bg-green-700 rounded-xl text-white p-8 text-center">
+            <h2 class="text-2xl font-bold mb-4">Ready to Book?</h2>
+            <p class="text-green-100 mb-6">Reserve your parking spot now and enjoy peace of mind during your travels.</p>
+            <a href="{% url 'parking:home' %}" class="inline-block bg-white text-green-700 px-8 py-3 rounded-lg font-semibold hover:bg-green-50 transition">
+                Book Parking Now
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

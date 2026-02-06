@@ -1,0 +1,130 @@
+{% load static %}
+
+<!-- Flight Card -->
+<div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition duration-300 flight-card {% if flight.is_delayed %}delayed{% elif flight.is_cancelled %}cancelled{% endif %}">
+    <div class="p-6">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+            <!-- Airline & Flight Info -->
+            <div class="flex items-center mb-4 lg:mb-0">
+                <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mr-4">
+                    {% if flight.airline.logo %}
+                        <img src="{{ flight.airline.logo.url }}" alt="{{ flight.airline.name }}" class="h-8 w-8 object-contain">
+                    {% else %}
+                        <i class="fas fa-plane text-naia-green text-xl"></i>
+                    {% endif %}
+                </div>
+                <div>
+                    <p class="font-semibold text-gray-900">{{ flight.airline.name }}</p>
+                    <p class="text-sm text-gray-500">{{ flight.flight_number }}</p>
+                </div>
+            </div>
+
+            <!-- Route & Times -->
+            <div class="flex-grow lg:mx-8">
+                <div class="flex items-center justify-between">
+                    <!-- Departure -->
+                    <div class="text-center">
+                        <p class="text-2xl font-bold text-gray-900">{{ flight.scheduled_departure|time:"H:i" }}</p>
+                        <p class="text-sm font-medium text-gray-700">{{ flight.origin.code }}</p>
+                        <p class="text-xs text-gray-500">{{ flight.origin.city }}</p>
+                    </div>
+
+                    <!-- Duration & Route Line -->
+                    <div class="flex-grow mx-4 text-center">
+                        <p class="text-xs text-gray-500 mb-1">{{ flight.duration }}</p>
+                        <div class="relative">
+                            <div class="h-0.5 bg-gray-300"></div>
+                            <div class="absolute top-1/2 left-0 transform -translate-y-1/2 w-2 h-2 bg-naia-green rounded-full"></div>
+                            <div class="absolute top-1/2 right-0 transform -translate-y-1/2 w-2 h-2 bg-naia-green rounded-full"></div>
+                            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                                <i class="fas fa-plane text-naia-green text-sm"></i>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">
+                            {% if flight.is_international %}International{% else %}Domestic{% endif %}
+                        </p>
+                    </div>
+
+                    <!-- Arrival -->
+                    <div class="text-center">
+                        <p class="text-2xl font-bold text-gray-900">{{ flight.scheduled_arrival|time:"H:i" }}</p>
+                        <p class="text-sm font-medium text-gray-700">{{ flight.destination.code }}</p>
+                        <p class="text-xs text-gray-500">{{ flight.destination.city }}</p>
+                    </div>
+                </div>
+
+                <!-- Flight Status -->
+                <div class="mt-2 flex justify-center">
+                    <span class="status-badge status-{{ flight.status|lower }}">
+                        {{ flight.get_status_display }}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Price & Booking -->
+            <div class="mt-4 lg:mt-0 lg:text-right">
+                <div class="mb-2">
+                    {% if seat_class == 'BUSINESS' %}
+                        <p class="text-xs text-gray-500">Business Class</p>
+                        <p class="text-2xl font-bold text-naia-green">
+                            <span class="text-sm">NGN</span> {{ flight.business_price|floatformat:0 }}
+                        </p>
+                    {% elif seat_class == 'FIRST' %}
+                        <p class="text-xs text-gray-500">First Class</p>
+                        <p class="text-2xl font-bold text-naia-green">
+                            <span class="text-sm">NGN</span> {{ flight.first_class_price|floatformat:0 }}
+                        </p>
+                    {% else %}
+                        <p class="text-xs text-gray-500">Economy Class</p>
+                        <p class="text-2xl font-bold text-naia-green">
+                            <span class="text-sm">NGN</span> {{ flight.economy_price|floatformat:0 }}
+                        </p>
+                    {% endif %}
+                    <p class="text-xs text-gray-500">per person</p>
+                </div>
+
+                {% if flight.is_bookable %}
+                <a href="{% url 'bookings:select_flight' flight.pk %}?seat_class={{ seat_class|default:'ECONOMY' }}&passengers={{ passengers|default:'1' }}"
+                   class="inline-block bg-naia-green text-white px-6 py-2 rounded-lg font-medium hover:bg-naia-green-dark transition duration-200">
+                    Select
+                </a>
+                {% else %}
+                <span class="inline-block bg-gray-300 text-gray-600 px-6 py-2 rounded-lg font-medium cursor-not-allowed">
+                    Unavailable
+                </span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Additional Info (expandable) -->
+        <div class="mt-4 pt-4 border-t border-gray-100">
+            <div class="flex flex-wrap gap-4 text-sm text-gray-600">
+                {% if flight.aircraft %}
+                <span class="flex items-center">
+                    <i class="fas fa-plane mr-1"></i>
+                    {{ flight.aircraft.get_aircraft_type_display }}
+                </span>
+                {% endif %}
+                <span class="flex items-center">
+                    <i class="fas fa-chair mr-1"></i>
+                    {{ flight.total_available_seats }} seats left
+                </span>
+                {% if flight.meal_service %}
+                <span class="flex items-center">
+                    <i class="fas fa-utensils mr-1"></i>
+                    Meal included
+                </span>
+                {% endif %}
+                {% if flight.wifi_available %}
+                <span class="flex items-center">
+                    <i class="fas fa-wifi mr-1"></i>
+                    WiFi
+                </span>
+                {% endif %}
+                <a href="{% url 'flights:detail' flight.pk %}" class="text-naia-green hover:underline ml-auto">
+                    Flight details <i class="fas fa-chevron-right ml-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

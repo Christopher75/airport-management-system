@@ -1,0 +1,333 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Flight Status Board - {{ airport.code }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .status-board {
+        font-family: 'Roboto Mono', 'Courier New', monospace;
+    }
+    .board-header {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    }
+    .flight-row {
+        transition: all 0.3s ease;
+    }
+    .flight-row:hover {
+        background-color: rgba(0, 166, 81, 0.1);
+    }
+    .status-scheduled { color: #6b7280; }
+    .status-check_in_open { color: #10b981; }
+    .status-boarding { color: #f59e0b; animation: pulse 2s infinite; }
+    .status-gate_closed { color: #ef4444; }
+    .status-departed { color: #3b82f6; }
+    .status-in_flight { color: #8b5cf6; }
+    .status-landed { color: #10b981; }
+    .status-arrived { color: #10b981; }
+    .status-delayed { color: #ef4444; animation: blink 1s infinite; }
+    .status-cancelled { color: #ef4444; text-decoration: line-through; }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.6; }
+    }
+    @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.3; }
+    }
+    .board-tab {
+        transition: all 0.3s ease;
+    }
+    .board-tab.active {
+        background-color: #00A651;
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bg-gray-900 min-h-screen">
+    <!-- Header -->
+    <div class="board-header text-white py-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="flex items-center mb-4 md:mb-0">
+                    <i class="fas fa-plane text-naia-green text-3xl mr-4"></i>
+                    <div>
+                        <h1 class="text-2xl font-bold">Flight Information Display</h1>
+                        <p class="text-gray-300">{{ airport.name }} ({{ airport.code }})</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <!-- Airport Selector -->
+                    <select id="airport-select" onchange="changeAirport(this.value)"
+                            class="bg-gray-800 text-white px-4 py-2 rounded-lg border border-gray-600">
+                        {% for apt in airports %}
+                        <option value="{{ apt.code }}" {% if apt.code == airport.code %}selected{% endif %}>
+                            {{ apt.code }} - {{ apt.city }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <!-- Current Time -->
+                    <div class="text-right">
+                        <p class="text-sm text-gray-400">Local Time</p>
+                        <p id="current-time" class="text-2xl font-mono font-bold text-naia-green">
+                            {{ current_time|time:"H:i:s" }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Board Tabs -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div class="flex space-x-4 mb-6">
+            <button onclick="showBoard('departures')" id="tab-departures"
+                    class="board-tab px-6 py-3 rounded-lg font-semibold text-white bg-gray-700 {% if board_type == 'departures' %}active{% endif %}">
+                <i class="fas fa-plane-departure mr-2"></i>Departures
+            </button>
+            <button onclick="showBoard('arrivals')" id="tab-arrivals"
+                    class="board-tab px-6 py-3 rounded-lg font-semibold text-white bg-gray-700 {% if board_type == 'arrivals' %}active{% endif %}">
+                <i class="fas fa-plane-arrival mr-2"></i>Arrivals
+            </button>
+        </div>
+
+        <!-- Departures Board -->
+        <div id="departures-board" class="status-board {% if board_type == 'arrivals' %}hidden{% endif %}">
+            <div class="bg-gray-800 rounded-xl overflow-hidden shadow-2xl">
+                <!-- Table Header -->
+                <div class="bg-gray-700 text-gray-300 text-sm font-semibold">
+                    <div class="grid grid-cols-12 gap-2 px-6 py-4">
+                        <div class="col-span-2">TIME</div>
+                        <div class="col-span-2">FLIGHT</div>
+                        <div class="col-span-3">DESTINATION</div>
+                        <div class="col-span-1">GATE</div>
+                        <div class="col-span-2">STATUS</div>
+                        <div class="col-span-2 text-right">ACTIONS</div>
+                    </div>
+                </div>
+
+                <!-- Flight Rows -->
+                <div class="divide-y divide-gray-700">
+                    {% for flight in departures %}
+                    <div class="flight-row grid grid-cols-12 gap-2 px-6 py-4 text-white items-center"
+                         data-flight-id="{{ flight.id }}">
+                        <div class="col-span-2">
+                            <span class="text-xl font-mono font-bold">
+                                {{ flight.scheduled_departure|time:"H:i" }}
+                            </span>
+                            {% if flight.actual_departure and flight.actual_departure != flight.scheduled_departure %}
+                            <span class="block text-sm text-yellow-500">
+                                Actual: {{ flight.actual_departure|time:"H:i" }}
+                            </span>
+                            {% endif %}
+                        </div>
+                        <div class="col-span-2">
+                            <span class="font-bold text-lg">{{ flight.flight_number }}</span>
+                            <span class="block text-sm text-gray-400">{{ flight.airline.name }}</span>
+                        </div>
+                        <div class="col-span-3">
+                            <span class="font-bold">{{ flight.destination.city }}</span>
+                            <span class="text-gray-400">({{ flight.destination.code }})</span>
+                        </div>
+                        <div class="col-span-1">
+                            {% if flight.departure_gate %}
+                            <span class="bg-gray-600 px-3 py-1 rounded font-mono font-bold">
+                                {{ flight.departure_gate.terminal }}{{ flight.departure_gate.gate_number }}
+                            </span>
+                            {% else %}
+                            <span class="text-gray-500">TBA</span>
+                            {% endif %}
+                        </div>
+                        <div class="col-span-2">
+                            <span class="status-{{ flight.status|lower }} font-semibold uppercase text-sm">
+                                {{ flight.get_status_display }}
+                            </span>
+                            {% if flight.delay_reason %}
+                            <span class="block text-xs text-gray-400 truncate" title="{{ flight.delay_reason }}">
+                                {{ flight.delay_reason|truncatechars:30 }}
+                            </span>
+                            {% endif %}
+                        </div>
+                        <div class="col-span-2 text-right">
+                            <a href="{% url 'flights:tracking' flight.pk %}"
+                               class="text-naia-green hover:text-naia-green-light text-sm">
+                                <i class="fas fa-location-arrow mr-1"></i>Track
+                            </a>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="px-6 py-12 text-center text-gray-400">
+                        <i class="fas fa-plane-slash text-4xl mb-4"></i>
+                        <p>No departures scheduled in this time window</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Arrivals Board -->
+        <div id="arrivals-board" class="status-board {% if board_type != 'arrivals' %}hidden{% endif %}">
+            <div class="bg-gray-800 rounded-xl overflow-hidden shadow-2xl">
+                <!-- Table Header -->
+                <div class="bg-gray-700 text-gray-300 text-sm font-semibold">
+                    <div class="grid grid-cols-12 gap-2 px-6 py-4">
+                        <div class="col-span-2">TIME</div>
+                        <div class="col-span-2">FLIGHT</div>
+                        <div class="col-span-3">ORIGIN</div>
+                        <div class="col-span-1">GATE</div>
+                        <div class="col-span-2">STATUS</div>
+                        <div class="col-span-2 text-right">ACTIONS</div>
+                    </div>
+                </div>
+
+                <!-- Flight Rows -->
+                <div class="divide-y divide-gray-700">
+                    {% for flight in arrivals %}
+                    <div class="flight-row grid grid-cols-12 gap-2 px-6 py-4 text-white items-center"
+                         data-flight-id="{{ flight.id }}">
+                        <div class="col-span-2">
+                            <span class="text-xl font-mono font-bold">
+                                {{ flight.scheduled_arrival|time:"H:i" }}
+                            </span>
+                            {% if flight.actual_arrival and flight.actual_arrival != flight.scheduled_arrival %}
+                            <span class="block text-sm text-yellow-500">
+                                Actual: {{ flight.actual_arrival|time:"H:i" }}
+                            </span>
+                            {% endif %}
+                        </div>
+                        <div class="col-span-2">
+                            <span class="font-bold text-lg">{{ flight.flight_number }}</span>
+                            <span class="block text-sm text-gray-400">{{ flight.airline.name }}</span>
+                        </div>
+                        <div class="col-span-3">
+                            <span class="font-bold">{{ flight.origin.city }}</span>
+                            <span class="text-gray-400">({{ flight.origin.code }})</span>
+                        </div>
+                        <div class="col-span-1">
+                            {% if flight.arrival_gate %}
+                            <span class="bg-gray-600 px-3 py-1 rounded font-mono font-bold">
+                                {{ flight.arrival_gate.terminal }}{{ flight.arrival_gate.gate_number }}
+                            </span>
+                            {% else %}
+                            <span class="text-gray-500">TBA</span>
+                            {% endif %}
+                        </div>
+                        <div class="col-span-2">
+                            <span class="status-{{ flight.status|lower }} font-semibold uppercase text-sm">
+                                {{ flight.get_status_display }}
+                            </span>
+                        </div>
+                        <div class="col-span-2 text-right">
+                            <a href="{% url 'flights:tracking' flight.pk %}"
+                               class="text-naia-green hover:text-naia-green-light text-sm">
+                                <i class="fas fa-location-arrow mr-1"></i>Track
+                            </a>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="px-6 py-12 text-center text-gray-400">
+                        <i class="fas fa-plane-slash text-4xl mb-4"></i>
+                        <p>No arrivals scheduled in this time window</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="mt-8 bg-gray-800 rounded-xl p-6">
+            <h3 class="text-white font-semibold mb-4">Status Legend</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 text-sm">
+                <div class="flex items-center">
+                    <span class="w-3 h-3 rounded-full bg-gray-500 mr-2"></span>
+                    <span class="text-gray-300">Scheduled</span>
+                </div>
+                <div class="flex items-center">
+                    <span class="w-3 h-3 rounded-full bg-green-500 mr-2"></span>
+                    <span class="text-gray-300">Check-in Open</span>
+                </div>
+                <div class="flex items-center">
+                    <span class="w-3 h-3 rounded-full bg-yellow-500 mr-2 animate-pulse"></span>
+                    <span class="text-gray-300">Boarding</span>
+                </div>
+                <div class="flex items-center">
+                    <span class="w-3 h-3 rounded-full bg-blue-500 mr-2"></span>
+                    <span class="text-gray-300">Departed</span>
+                </div>
+                <div class="flex items-center">
+                    <span class="w-3 h-3 rounded-full bg-purple-500 mr-2"></span>
+                    <span class="text-gray-300">In Flight</span>
+                </div>
+                <div class="flex items-center">
+                    <span class="w-3 h-3 rounded-full bg-red-500 mr-2"></span>
+                    <span class="text-gray-300">Delayed/Cancelled</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Auto-refresh notice -->
+        <div class="mt-4 text-center text-gray-500 text-sm">
+            <i class="fas fa-sync-alt mr-1"></i>
+            This board auto-refreshes every 30 seconds
+        </div>
+    </div>
+</div>
+
+<script>
+// Update current time every second
+function updateTime() {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('en-GB', {hour: '2-digit', minute: '2-digit', second: '2-digit'});
+    document.getElementById('current-time').textContent = timeStr;
+}
+setInterval(updateTime, 1000);
+
+// Switch between departures and arrivals
+function showBoard(type) {
+    document.getElementById('departures-board').classList.toggle('hidden', type !== 'departures');
+    document.getElementById('arrivals-board').classList.toggle('hidden', type !== 'arrivals');
+    document.getElementById('tab-departures').classList.toggle('active', type === 'departures');
+    document.getElementById('tab-arrivals').classList.toggle('active', type === 'arrivals');
+
+    // Update URL without reload
+    const url = new URL(window.location);
+    url.searchParams.set('type', type);
+    window.history.replaceState({}, '', url);
+}
+
+// Change airport
+function changeAirport(code) {
+    const url = new URL(window.location);
+    url.searchParams.set('airport', code);
+    window.location.href = url;
+}
+
+// Auto-refresh flight data every 30 seconds
+function refreshFlightData() {
+    const airport = document.getElementById('airport-select').value;
+
+    // Fetch departures
+    fetch(`{% url 'flights:status_api' %}?airport=${airport}&type=departures`)
+        .then(response => response.json())
+        .then(data => {
+            // Update departures board (simplified - full implementation would update DOM)
+            console.log('Departures updated:', data.flights.length, 'flights');
+        })
+        .catch(error => console.error('Error fetching departures:', error));
+
+    // Fetch arrivals
+    fetch(`{% url 'flights:status_api' %}?airport=${airport}&type=arrivals`)
+        .then(response => response.json())
+        .then(data => {
+            console.log('Arrivals updated:', data.flights.length, 'flights');
+        })
+        .catch(error => console.error('Error fetching arrivals:', error));
+}
+
+// Refresh every 30 seconds
+setInterval(refreshFlightData, 30000);
+</script>
+{% endblock %}

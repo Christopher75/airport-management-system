@@ -1,0 +1,422 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Analytics Dashboard - NAIA{% endblock %}
+
+{% block extra_css %}
+<style>
+    .metric-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .metric-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+    .chart-container {
+        position: relative;
+        height: 300px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bg-gray-100 min-h-screen">
+    <!-- Header -->
+    <div class="bg-naia-green text-white py-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-bold">Analytics Dashboard</h1>
+                    <p class="text-green-100">Nnamdi Azikiwe International Airport</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm text-green-100">Last updated</p>
+                    <p class="font-mono">{{ current_time|date:"H:i:s" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Quick Links -->
+        <div class="mb-6 flex space-x-4">
+            <a href="{% url 'analytics:revenue_report' %}" class="bg-white px-4 py-2 rounded-lg shadow text-sm font-medium text-gray-700 hover:bg-gray-50">
+                <i class="fas fa-chart-line text-naia-green mr-2"></i>Revenue Report
+            </a>
+            <a href="{% url 'analytics:flight_report' %}" class="bg-white px-4 py-2 rounded-lg shadow text-sm font-medium text-gray-700 hover:bg-gray-50">
+                <i class="fas fa-plane text-blue-500 mr-2"></i>Flight Report
+            </a>
+            <a href="{% url 'analytics:booking_report' %}" class="bg-white px-4 py-2 rounded-lg shadow text-sm font-medium text-gray-700 hover:bg-gray-50">
+                <i class="fas fa-ticket-alt text-purple-500 mr-2"></i>Booking Report
+            </a>
+            <a href="{% url 'admin:index' %}" class="bg-white px-4 py-2 rounded-lg shadow text-sm font-medium text-gray-700 hover:bg-gray-50">
+                <i class="fas fa-cog text-gray-500 mr-2"></i>Admin Panel
+            </a>
+        </div>
+
+        <!-- Key Metrics -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Total Revenue -->
+            <div class="metric-card bg-white rounded-xl shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500 uppercase tracking-wide">Total Revenue</p>
+                        <p class="text-2xl font-bold text-gray-900 mt-1">
+                            NGN {{ total_revenue|floatformat:0|default:"0" }}
+                        </p>
+                        <p class="text-sm text-green-600 mt-2">
+                            <i class="fas fa-arrow-up mr-1"></i>
+                            NGN {{ revenue_this_month|floatformat:0|default:"0" }} this month
+                        </p>
+                    </div>
+                    <div class="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-naira-sign text-green-600 text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Bookings -->
+            <div class="metric-card bg-white rounded-xl shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500 uppercase tracking-wide">Total Bookings</p>
+                        <p class="text-2xl font-bold text-gray-900 mt-1">{{ total_bookings }}</p>
+                        <p class="text-sm text-blue-600 mt-2">
+                            <i class="fas fa-calendar-day mr-1"></i>
+                            {{ bookings_today }} today
+                        </p>
+                    </div>
+                    <div class="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-ticket-alt text-blue-600 text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Flights -->
+            <div class="metric-card bg-white rounded-xl shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500 uppercase tracking-wide">Flights Today</p>
+                        <p class="text-2xl font-bold text-gray-900 mt-1">{{ flights_today }}</p>
+                        <p class="text-sm text-purple-600 mt-2">
+                            <i class="fas fa-plane mr-1"></i>
+                            {{ active_flights }} currently in air
+                        </p>
+                    </div>
+                    <div class="w-14 h-14 bg-purple-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-plane-departure text-purple-600 text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Average Booking Value -->
+            <div class="metric-card bg-white rounded-xl shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500 uppercase tracking-wide">Avg. Booking Value</p>
+                        <p class="text-2xl font-bold text-gray-900 mt-1">
+                            NGN {{ avg_booking_value|floatformat:0|default:"0" }}
+                        </p>
+                        <p class="text-sm text-yellow-600 mt-2">
+                            <i class="fas fa-chart-line mr-1"></i>
+                            Per confirmed booking
+                        </p>
+                    </div>
+                    <div class="w-14 h-14 bg-yellow-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-calculator text-yellow-600 text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- Revenue Chart -->
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-semibold text-gray-900">Revenue Trend</h2>
+                    <select id="revenue-period" class="text-sm border-gray-300 rounded-lg" onchange="updateRevenueChart(this.value)">
+                        <option value="7">Last 7 days</option>
+                        <option value="30" selected>Last 30 days</option>
+                        <option value="90">Last 90 days</option>
+                    </select>
+                </div>
+                <div class="chart-container">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Bookings Chart -->
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-semibold text-gray-900">Bookings Trend</h2>
+                    <select id="bookings-period" class="text-sm border-gray-300 rounded-lg" onchange="updateBookingsChart(this.value)">
+                        <option value="7">Last 7 days</option>
+                        <option value="30" selected>Last 30 days</option>
+                        <option value="90">Last 90 days</option>
+                    </select>
+                </div>
+                <div class="chart-container">
+                    <canvas id="bookingsChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Cards and Top Routes -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+            <!-- Booking Status -->
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Booking Status</h2>
+                <div class="chart-container" style="height: 200px;">
+                    <canvas id="statusChart"></canvas>
+                </div>
+                <div class="mt-4 space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="flex items-center">
+                            <span class="w-3 h-3 bg-green-500 rounded-full mr-2"></span>
+                            Confirmed
+                        </span>
+                        <span class="font-semibold">{{ confirmed_bookings }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="flex items-center">
+                            <span class="w-3 h-3 bg-yellow-500 rounded-full mr-2"></span>
+                            Pending
+                        </span>
+                        <span class="font-semibold">{{ pending_bookings }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="flex items-center">
+                            <span class="w-3 h-3 bg-red-500 rounded-full mr-2"></span>
+                            Cancelled
+                        </span>
+                        <span class="font-semibold">{{ cancelled_bookings }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Status -->
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Payment Status</h2>
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between p-4 bg-green-50 rounded-lg">
+                        <div class="flex items-center">
+                            <i class="fas fa-check-circle text-green-500 text-xl mr-3"></i>
+                            <span class="font-medium">Completed</span>
+                        </div>
+                        <span class="text-2xl font-bold text-green-600">{{ completed_payments_count }}</span>
+                    </div>
+                    <div class="flex items-center justify-between p-4 bg-yellow-50 rounded-lg">
+                        <div class="flex items-center">
+                            <i class="fas fa-clock text-yellow-500 text-xl mr-3"></i>
+                            <span class="font-medium">Pending</span>
+                        </div>
+                        <span class="text-2xl font-bold text-yellow-600">{{ pending_payments_count }}</span>
+                    </div>
+                    <div class="flex items-center justify-between p-4 bg-red-50 rounded-lg">
+                        <div class="flex items-center">
+                            <i class="fas fa-times-circle text-red-500 text-xl mr-3"></i>
+                            <span class="font-medium">Failed</span>
+                        </div>
+                        <span class="text-2xl font-bold text-red-600">{{ failed_payments_count }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Routes -->
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Top Routes</h2>
+                <div class="space-y-3">
+                    {% for route in top_routes %}
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div class="flex items-center">
+                            <span class="font-bold text-naia-green">{{ route.origin__code }}</span>
+                            <i class="fas fa-arrow-right mx-2 text-gray-400"></i>
+                            <span class="font-bold text-blue-600">{{ route.destination__code }}</span>
+                        </div>
+                        <span class="text-sm text-gray-600">{{ route.booking_count }} bookings</span>
+                    </div>
+                    {% empty %}
+                    <p class="text-gray-500 text-center py-4">No route data available</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Bookings Table -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden">
+            <div class="p-6 border-b">
+                <h2 class="text-lg font-semibold text-gray-900">Recent Bookings</h2>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reference</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Route</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for booking in recent_bookings %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="font-mono font-medium text-naia-green">{{ booking.reference }}</span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">
+                                    {{ booking.user.get_full_name|default:booking.user.email }}
+                                </div>
+                                <div class="text-sm text-gray-500">{{ booking.user.email }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="font-medium">{{ booking.flight.origin.code }}</span>
+                                <i class="fas fa-arrow-right mx-1 text-gray-400"></i>
+                                <span class="font-medium">{{ booking.flight.destination.code }}</span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap font-medium">
+                                NGN {{ booking.total_price|floatformat:0 }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 py-1 text-xs font-medium rounded-full
+                                    {% if booking.status == 'CONFIRMED' %}bg-green-100 text-green-800
+                                    {% elif booking.status == 'PENDING' %}bg-yellow-100 text-yellow-800
+                                    {% elif booking.status == 'CANCELLED' %}bg-red-100 text-red-800
+                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {{ booking.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ booking.created_at|date:"M d, H:i" }}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+                                No bookings yet
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Flight Alerts -->
+        {% if delayed_flights > 0 %}
+        <div class="mt-8 bg-red-50 border border-red-200 rounded-xl p-6">
+            <div class="flex items-center">
+                <i class="fas fa-exclamation-triangle text-red-500 text-xl mr-4"></i>
+                <div>
+                    <h3 class="font-semibold text-red-800">Flight Delays Alert</h3>
+                    <p class="text-red-700">{{ delayed_flights }} flight(s) are currently delayed today.</p>
+                </div>
+                <a href="{% url 'flights:status_board' %}" class="ml-auto bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700">
+                    View Status Board
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Revenue Chart
+let revenueChart;
+function initRevenueChart(data) {
+    const ctx = document.getElementById('revenueChart').getContext('2d');
+    if (revenueChart) revenueChart.destroy();
+    revenueChart = new Chart(ctx, {
+        type: 'line',
+        data: data,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return 'NGN ' + value.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function updateRevenueChart(days) {
+    fetch(`{% url 'analytics:chart_data' %}?type=revenue&days=${days}`)
+        .then(response => response.json())
+        .then(data => initRevenueChart(data));
+}
+
+// Bookings Chart
+let bookingsChart;
+function initBookingsChart(data) {
+    const ctx = document.getElementById('bookingsChart').getContext('2d');
+    if (bookingsChart) bookingsChart.destroy();
+    bookingsChart = new Chart(ctx, {
+        type: 'line',
+        data: data,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { stepSize: 1 }
+                }
+            }
+        }
+    });
+}
+
+function updateBookingsChart(days) {
+    fetch(`{% url 'analytics:chart_data' %}?type=bookings&days=${days}`)
+        .then(response => response.json())
+        .then(data => initBookingsChart(data));
+}
+
+// Status Chart (Doughnut)
+function initStatusChart() {
+    const ctx = document.getElementById('statusChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Confirmed', 'Pending', 'Cancelled'],
+            datasets: [{
+                data: [{{ confirmed_bookings }}, {{ pending_bookings }}, {{ cancelled_bookings }}],
+                backgroundColor: ['#10B981', '#F59E0B', '#EF4444'],
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+}
+
+// Initialize charts on page load
+document.addEventListener('DOMContentLoaded', function() {
+    updateRevenueChart(30);
+    updateBookingsChart(30);
+    initStatusChart();
+});
+</script>
+{% endblock %}

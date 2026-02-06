@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">My Profile</h1>
+                <p class="text-gray-600 mt-1">Manage your personal information and preferences</p>
+            </div>
+            <a href="{% url 'accounts:profile_edit' %}"
+               class="mt-4 md:mt-0 bg-naia-green text-white px-6 py-3 rounded-lg font-medium hover:bg-naia-green-dark transition inline-flex items-center">
+                <i class="fas fa-edit mr-2"></i>Edit Profile
+            </a>
+        </div>
+
+        <!-- Profile Header Card -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden mb-6">
+            <div class="bg-gradient-to-r from-naia-green to-naia-green-dark h-32"></div>
+            <div class="px-6 pb-6">
+                <div class="flex flex-col md:flex-row md:items-end -mt-16">
+                    <div class="mb-4 md:mb-0">
+                        {% if profile.avatar %}
+                        <img src="{{ profile.avatar.url }}" alt="Profile Photo"
+                             class="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover">
+                        {% else %}
+                        <div class="w-32 h-32 rounded-full border-4 border-white shadow-lg bg-naia-green flex items-center justify-center">
+                            <span class="text-white text-4xl font-bold">
+                                {{ user.first_name|slice:":1"|upper }}{{ user.last_name|slice:":1"|upper }}
+                            </span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="md:ml-6 md:pb-2">
+                        <h2 class="text-2xl font-bold text-gray-900">
+                            {% if profile.title %}{{ profile.get_title_display }} {% endif %}
+                            {{ user.get_full_name|default:user.email }}
+                        </h2>
+                        <p class="text-gray-600">{{ user.email }}</p>
+                        <div class="flex items-center mt-2">
+                            <span class="bg-naia-gold/20 text-naia-gold px-3 py-1 rounded-full text-sm font-medium">
+                                <i class="fas fa-crown mr-1"></i>{{ profile.loyalty_tier }} Member
+                            </span>
+                            <span class="ml-3 text-gray-500">
+                                <i class="fas fa-star mr-1"></i>{{ profile.loyalty_points|default:"0" }} points
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid lg:grid-cols-2 gap-6">
+            <!-- Personal Information -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                <div class="p-6 border-b">
+                    <h3 class="text-lg font-semibold text-gray-900">
+                        <i class="fas fa-user text-naia-green mr-2"></i>Personal Information
+                    </h3>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-sm text-gray-500">First Name</p>
+                            <p class="font-medium text-gray-900">{{ user.first_name|default:"Not provided" }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Last Name</p>
+                            <p class="font-medium text-gray-900">{{ user.last_name|default:"Not provided" }}</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-sm text-gray-500">Gender</p>
+                            <p class="font-medium text-gray-900">{{ profile.get_gender_display|default:"Not provided" }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Date of Birth</p>
+                            <p class="font-medium text-gray-900">{{ profile.date_of_birth|date:"M d, Y"|default:"Not provided" }}</p>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Phone Number</p>
+                        <p class="font-medium text-gray-900">{{ profile.phone_number|default:"Not provided" }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Nationality</p>
+                        <p class="font-medium text-gray-900">{{ profile.nationality|default:"Not provided" }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Passport Information -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                <div class="p-6 border-b">
+                    <h3 class="text-lg font-semibold text-gray-900">
+                        <i class="fas fa-passport text-naia-green mr-2"></i>Passport Information
+                    </h3>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div>
+                        <p class="text-sm text-gray-500">Passport Number</p>
+                        <p class="font-medium text-gray-900">{{ profile.passport_number|default:"Not provided" }}</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-sm text-gray-500">Issuing Country</p>
+                            <p class="font-medium text-gray-900">{{ profile.passport_country|default:"Not provided" }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Expiry Date</p>
+                            {% if profile.passport_expiry %}
+                            <p class="font-medium {% if profile.passport_expiry < today %}text-red-600{% else %}text-gray-900{% endif %}">
+                                {{ profile.passport_expiry|date:"M d, Y" }}
+                                {% if profile.passport_expiry < today %}
+                                <span class="text-xs text-red-600">(Expired)</span>
+                                {% endif %}
+                            </p>
+                            {% else %}
+                            <p class="font-medium text-gray-900">Not provided</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if not profile.passport_number %}
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mt-4">
+                        <p class="text-sm text-yellow-800">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>
+                            Add your passport details for faster international bookings.
+                        </p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Address -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                <div class="p-6 border-b">
+                    <h3 class="text-lg font-semibold text-gray-900">
+                        <i class="fas fa-map-marker-alt text-naia-green mr-2"></i>Address
+                    </h3>
+                </div>
+                <div class="p-6">
+                    {% if profile.address_line1 %}
+                    <p class="font-medium text-gray-900">{{ profile.address_line1 }}</p>
+                    {% if profile.address_line2 %}
+                    <p class="text-gray-900">{{ profile.address_line2 }}</p>
+                    {% endif %}
+                    <p class="text-gray-900">
+                        {% if profile.city %}{{ profile.city }}{% endif %}{% if profile.state %}, {{ profile.state }}{% endif %}
+                    </p>
+                    {% if profile.postal_code or profile.country %}
+                    <p class="text-gray-900">
+                        {% if profile.postal_code %}{{ profile.postal_code }}{% endif %}
+                        {% if profile.country %}, {{ profile.country }}{% endif %}
+                    </p>
+                    {% endif %}
+                    {% else %}
+                    <p class="text-gray-500">No address provided</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Emergency Contact -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                <div class="p-6 border-b">
+                    <h3 class="text-lg font-semibold text-gray-900">
+                        <i class="fas fa-phone-alt text-naia-green mr-2"></i>Emergency Contact
+                    </h3>
+                </div>
+                <div class="p-6 space-y-4">
+                    {% if profile.emergency_contact_name %}
+                    <div>
+                        <p class="text-sm text-gray-500">Contact Name</p>
+                        <p class="font-medium text-gray-900">{{ profile.emergency_contact_name }}</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-sm text-gray-500">Phone Number</p>
+                            <p class="font-medium text-gray-900">{{ profile.emergency_contact_phone|default:"Not provided" }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Relationship</p>
+                            <p class="font-medium text-gray-900">{{ profile.emergency_contact_relationship|default:"Not provided" }}</p>
+                        </div>
+                    </div>
+                    {% else %}
+                    <p class="text-gray-500">No emergency contact provided</p>
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <p class="text-sm text-yellow-800">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>
+                            Adding an emergency contact is recommended for your safety.
+                        </p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Travel Preferences -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden mt-6">
+            <div class="p-6 border-b">
+                <h3 class="text-lg font-semibold text-gray-900">
+                    <i class="fas fa-cog text-naia-green mr-2"></i>Travel Preferences
+                </h3>
+            </div>
+            <div class="p-6">
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div>
+                        <p class="text-sm text-gray-500">Preferred Seat</p>
+                        <p class="font-medium text-gray-900">{{ profile.get_preferred_seat_display|default:"No preference" }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Meal Preference</p>
+                        <p class="font-medium text-gray-900">{{ profile.get_meal_preference_display|default:"No preference" }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Special Assistance</p>
+                        <p class="font-medium text-gray-900">{{ profile.special_assistance|default:"None required"|truncatewords:10 }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Account Information -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden mt-6">
+            <div class="p-6 border-b">
+                <h3 class="text-lg font-semibold text-gray-900">
+                    <i class="fas fa-shield-alt text-naia-green mr-2"></i>Account Information
+                </h3>
+            </div>
+            <div class="p-6">
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div>
+                        <p class="text-sm text-gray-500">Member Since</p>
+                        <p class="font-medium text-gray-900">{{ user.date_joined|date:"F Y" }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Email Status</p>
+                        {% if user.emailaddress_set.first.verified %}
+                        <p class="font-medium text-green-600">
+                            <i class="fas fa-check-circle mr-1"></i>Verified
+                        </p>
+                        {% else %}
+                        <p class="font-medium text-yellow-600">
+                            <i class="fas fa-exclamation-circle mr-1"></i>Not verified
+                        </p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Last Login</p>
+                        <p class="font-medium text-gray-900">{{ user.last_login|date:"M d, Y H:i"|default:"Never" }}</p>
+                    </div>
+                </div>
+
+                <div class="mt-6 pt-6 border-t">
+                    <div class="flex flex-wrap gap-4">
+                        <a href="{% url 'account_change_password' %}" class="text-naia-green hover:underline">
+                            <i class="fas fa-key mr-1"></i>Change Password
+                        </a>
+                        <a href="{% url 'account_email' %}" class="text-naia-green hover:underline">
+                            <i class="fas fa-envelope mr-1"></i>Manage Email
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

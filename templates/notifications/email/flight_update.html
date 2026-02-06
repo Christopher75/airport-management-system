@@ -1,0 +1,109 @@
+{% extends "notifications/email/base_email.html" %}
+
+{% block title %}Flight Update - {{ flight.flight_number }}{% endblock %}
+
+{% block content %}
+<h2>Flight Update</h2>
+
+<p>Dear {{ user.first_name|default:"Valued Customer" }},</p>
+
+<p>
+    We have an important update regarding your upcoming flight:
+</p>
+
+<!-- Alert based on update type -->
+{% if update_type == 'FLIGHT_DELAY' %}
+<div class="alert alert-warning">
+    <strong>Flight Delayed</strong><br>
+    {{ update_message }}
+</div>
+{% elif update_type == 'FLIGHT_CANCELLATION' %}
+<div class="alert" style="background-color: #f8d7da; border: 1px solid #f5c2c7; color: #842029;">
+    <strong>Flight Cancelled</strong><br>
+    {{ update_message }}
+</div>
+{% elif update_type == 'FLIGHT_GATE_CHANGE' %}
+<div class="alert alert-info">
+    <strong>Gate Change</strong><br>
+    {{ update_message }}
+</div>
+{% elif update_type == 'FLIGHT_BOARDING' %}
+<div class="alert alert-success">
+    <strong>Boarding Now</strong><br>
+    {{ update_message }}
+</div>
+{% else %}
+<div class="alert alert-info">
+    {{ update_message }}
+</div>
+{% endif %}
+
+<!-- Flight Details -->
+<div class="flight-card">
+    <p style="margin: 0; font-weight: 600; color: #333;">
+        {{ flight.flight_number }} | {{ flight.airline.name }}
+    </p>
+
+    <div class="flight-route">
+        <div>
+            <div class="airport-code">{{ flight.origin.code }}</div>
+            <div class="airport-city">{{ flight.origin.city }}</div>
+        </div>
+        <div class="flight-arrow">&#10132;</div>
+        <div>
+            <div class="airport-code">{{ flight.destination.code }}</div>
+            <div class="airport-city">{{ flight.destination.city }}</div>
+        </div>
+    </div>
+
+    <p style="margin: 0; color: #333;">
+        <strong>{{ flight.scheduled_departure|date:"l, F d, Y" }}</strong><br>
+        Scheduled Departure: {{ flight.scheduled_departure|time:"H:i" }}
+        {% if flight.actual_departure %}
+        <br><strong style="color: #006400;">Updated Departure: {{ flight.actual_departure|time:"H:i" }}</strong>
+        {% endif %}
+    </p>
+</div>
+
+<!-- Booking Reference -->
+<div class="info-box">
+    <div class="info-row">
+        <span class="info-label">Booking Reference</span>
+        <span class="info-value">{{ booking.reference }}</span>
+    </div>
+    <div class="info-row">
+        <span class="info-label">Flight Status</span>
+        <span class="info-value">{{ flight.get_status_display }}</span>
+    </div>
+    {% if flight.departure_gate %}
+    <div class="info-row">
+        <span class="info-label">Gate</span>
+        <span class="info-value">{{ flight.departure_gate.gate_number }}</span>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Call to Action -->
+<div style="text-align: center;">
+    <a href="{{ site_url }}/dashboard/bookings/{{ booking.reference }}/" class="btn">
+        View Booking Details
+    </a>
+</div>
+
+<div class="alert alert-info">
+    <strong>Need Assistance?</strong><br>
+    Our customer service team is available 24/7 to help you with any questions or
+    concerns about this flight update.
+</div>
+
+<p style="color: #666; font-size: 14px;">
+    For immediate assistance, please contact us at
+    <a href="tel:{{ support_phone }}">{{ support_phone }}</a> or email
+    <a href="mailto:{{ support_email }}">{{ support_email }}</a>.
+</p>
+
+<p style="margin-bottom: 0;">
+    Best regards,<br>
+    <strong>The NAIA Team</strong>
+</p>
+{% endblock %}
