@@ -232,6 +232,7 @@ ADMIN_URL = config("ADMIN_URL", default="admin/")
 # ============================================================
 
 # Template caching
+TEMPLATES[0]["APP_DIRS"] = False  # Must disable when using custom loaders  # noqa: F405
 TEMPLATES[0]["OPTIONS"]["loaders"] = [  # noqa: F405
     (
         "django.template.loaders.cached.Loader",
