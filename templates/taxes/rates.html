@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Airport Tax Rate Schedule | NAIA{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<div class="bg-gradient-to-br from-naia-green to-green-800 text-white py-12">
+    <div class="max-w-5xl mx-auto px-4">
+        <h1 class="text-3xl font-bold mb-2">Airport Tax Rate Schedule</h1>
+        <p class="text-white/80">
+            Official schedule of airport taxes, levies, and charges as mandated by the
+            Federal Government of Nigeria and the Nigerian Civil Aviation Authority (NCAA).
+            Effective for all flights departing Nnamdi Azikiwe International Airport, Abuja.
+        </p>
+    </div>
+</div>
+
+<div class="max-w-5xl mx-auto px-4 py-10">
+
+    <!-- Rate Table -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-8">
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <h2 class="font-semibold text-gray-900">All Active Tax Types</h2>
+            <span class="text-xs text-gray-500">{{ taxes.count }} tax type{{ taxes.count|pluralize }}</span>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50 text-gray-500 uppercase text-xs">
+                    <tr>
+                        <th class="px-4 py-3 text-left">Code</th>
+                        <th class="px-4 py-3 text-left">Name</th>
+                        <th class="px-4 py-3 text-left">Category</th>
+                        <th class="px-4 py-3 text-left">Applies To</th>
+                        <th class="px-4 py-3 text-center">Type</th>
+                        <th class="px-4 py-3 text-right">Rate / Amount</th>
+                        <th class="px-4 py-3 text-center">Mandatory</th>
+                        <th class="px-4 py-3 text-left">Effective From</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for tax in taxes %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3 font-mono font-bold text-naia-green text-sm">{{ tax.code }}</td>
+                        <td class="px-4 py-3 text-gray-900 font-medium">{{ tax.name }}</td>
+                        <td class="px-4 py-3 text-gray-600">{{ tax.get_category_display }}</td>
+                        <td class="px-4 py-3 text-gray-600">{{ tax.get_applicability_display }}</td>
+                        <td class="px-4 py-3 text-center">
+                            {% if tax.rate_type == 'PERCENT' %}
+                            <span class="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full">Percentage</span>
+                            {% else %}
+                            <span class="bg-purple-100 text-purple-700 text-xs px-2 py-0.5 rounded-full">Fixed</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-3 text-right font-bold text-gray-900">
+                            {% if tax.rate_type == 'PERCENT' %}
+                                {{ tax.rate }}%
+                            {% else %}
+                                ₦{{ tax.rate|floatformat:0 }}/pax
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                            {% if tax.is_mandatory %}
+                            <i class="fas fa-check-circle text-green-500"></i>
+                            {% else %}
+                            <i class="fas fa-minus text-gray-400"></i>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-3 text-gray-600 text-xs">{{ tax.effective_from|date:"d M Y" }}{% if tax.effective_until %} – {{ tax.effective_until|date:"d M Y" }}{% endif %}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="px-4 py-10 text-center text-gray-400">
+                            No tax rates have been configured yet.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Notes Section -->
+    <div class="grid md:grid-cols-2 gap-6">
+        <div class="bg-amber-50 border border-amber-100 rounded-xl p-5">
+            <h3 class="font-semibold text-amber-900 mb-2 flex items-center gap-2">
+                <i class="fas fa-exclamation-triangle"></i> Important Notes
+            </h3>
+            <ul class="text-sm text-amber-800 space-y-1.5">
+                <li>· All taxes are in Nigerian Naira (₦) and inclusive of applicable rates.</li>
+                <li>· Taxes are applied per departing passenger unless otherwise stated.</li>
+                <li>· Infants (under 2) may be exempt from certain charges — see airline policy.</li>
+                <li>· Transit passengers staying less than 24 hours may attract reduced charges.</li>
+                <li>· Rates are subject to change by government order. Check before travel.</li>
+            </ul>
+        </div>
+        <div class="bg-blue-50 border border-blue-100 rounded-xl p-5">
+            <h3 class="font-semibold text-blue-900 mb-2 flex items-center gap-2">
+                <i class="fas fa-info-circle"></i> Where Do the Taxes Go?
+            </h3>
+            <ul class="text-sm text-blue-800 space-y-1.5">
+                <li>· <strong>VAT (7.5%):</strong> Remitted to the Federal Inland Revenue Service (FIRS).</li>
+                <li>· <strong>ADL:</strong> Funds infrastructure development at Nigerian airports (FAAN).</li>
+                <li>· <strong>PSC:</strong> Retained by NAIA to fund terminal operations and passenger amenities.</li>
+                <li>· <strong>Security Fee:</strong> Funds screening equipment and security personnel.</li>
+                <li>· <strong>Departure Tax:</strong> Federal government consolidated revenue fund.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="mt-6 text-center">
+        <a href="{% url 'taxes:home' %}"
+           class="inline-block bg-naia-green text-white px-6 py-3 rounded-lg font-medium hover:bg-naia-green-dark transition">
+            <i class="fas fa-search mr-2"></i>Look Up Your Tax Invoice
+        </a>
+    </div>
+</div>
+{% endblock %}

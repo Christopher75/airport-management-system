@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}My Tax Invoices | NAIA{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen py-10">
+    <div class="max-w-5xl mx-auto px-4">
+
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                <i class="fas fa-file-invoice-dollar text-naia-green"></i>
+                My Tax Invoices
+            </h1>
+            <p class="text-gray-500 mt-1">Airport taxes &amp; levies linked to your bookings</p>
+        </div>
+
+        {% if invoices %}
+        <div class="space-y-4">
+            {% for invoice in invoices %}
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div class="flex items-start gap-4">
+                        <!-- Icon -->
+                        <div class="w-11 h-11 bg-naia-green/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                            {% if invoice.service_type == 'FLIGHT' %}
+                                <i class="fas fa-plane text-naia-green"></i>
+                            {% elif invoice.service_type == 'HOTEL' %}
+                                <i class="fas fa-hotel text-indigo-500"></i>
+                            {% elif invoice.service_type == 'LOUNGE' %}
+                                <i class="fas fa-couch text-amber-500"></i>
+                            {% elif invoice.service_type == 'PARKING' %}
+                                <i class="fas fa-parking text-sky-500"></i>
+                            {% else %}
+                                <i class="fas fa-plane-departure text-gray-500"></i>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <p class="font-semibold text-gray-900">{{ invoice.invoice_number }}</p>
+                            <p class="text-sm text-gray-500">
+                                {{ invoice.get_service_type_display }}
+                                {% if invoice.flight_route %}· {{ invoice.flight_route }}{% endif %}
+                            </p>
+                            <p class="text-xs text-gray-400 mt-0.5">Booking: {{ invoice.booking_reference }} · {{ invoice.created_at|date:"d M Y" }}</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-4">
+                        <div class="text-right">
+                            <p class="text-lg font-bold text-naia-green">₦{{ invoice.total_tax_amount|floatformat:0 }}</p>
+                            {% if invoice.is_paid %}
+                            <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">Paid</span>
+                            {% else %}
+                            <span class="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full font-medium">Unpaid</span>
+                            {% endif %}
+                        </div>
+                        <a href="{% url 'taxes:invoice_detail' invoice.invoice_number %}"
+                           class="bg-naia-green text-white text-sm px-4 py-2 rounded-lg hover:bg-naia-green-dark transition whitespace-nowrap">
+                            View
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Summary -->
+        <div class="mt-8 bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+            <div class="grid sm:grid-cols-3 gap-4 text-center">
+                <div>
+                    <p class="text-2xl font-bold text-gray-900">{{ invoices.count }}</p>
+                    <p class="text-sm text-gray-500">Total Invoices</p>
+                </div>
+                <div>
+                    <p class="text-2xl font-bold text-green-600">{{ invoices|length }}</p>
+                    <p class="text-sm text-gray-500">Processed</p>
+                </div>
+                <div>
+                    <p class="text-2xl font-bold text-naia-green">
+                        ₦{% for inv in invoices %}{{ inv.total_tax_amount|floatformat:0 }}{% if not forloop.last %}+{% endif %}{% endfor %}
+                    </p>
+                    <p class="text-sm text-gray-500">Total Taxes</p>
+                </div>
+            </div>
+        </div>
+
+        {% else %}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
+            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-file-invoice text-gray-400 text-2xl"></i>
+            </div>
+            <h2 class="text-lg font-semibold text-gray-700 mb-2">No Tax Invoices Found</h2>
+            <p class="text-gray-500 text-sm max-w-sm mx-auto">
+                Tax invoices are generated when you make bookings. Once your bookings are processed,
+                your tax invoices will appear here.
+            </p>
+            <a href="{% url 'flights:search' %}"
+               class="inline-block mt-6 bg-naia-green text-white px-6 py-3 rounded-lg font-medium hover:bg-naia-green-dark transition">
+                Search Flights
+            </a>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}

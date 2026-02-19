@@ -56,6 +56,9 @@ urlpatterns = [
     # Airport Lounge Booking
     path("lounges/", include("lounge.urls")),
 
+    # Airport Taxes & Levies
+    path("taxes/", include("taxes.urls")),
+
     # Authentication (django-allauth)
     path("accounts/", include("allauth.urls")),
 

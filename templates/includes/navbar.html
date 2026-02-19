@@ -43,6 +43,9 @@
                         <a href="{% url 'airlines:parking_rates' %}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-slate-50">
                             <span>🛩️</span> Aircraft Parking Rates
                         </a>
+                        <a href="{% url 'taxes:home' %}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-red-50">
+                            <span>🧾</span> Airport Taxes
+                        </a>
                     </div>
                 </div>
                 <a href="{% url 'core:about' %}" class="text-white hover:text-naia-gold px-3 py-2 rounded-md text-sm font-medium transition duration-200">
@@ -76,6 +79,9 @@
                             </a>
                             <a href="{% url 'lounge:my_bookings' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                 🛋️ My Lounge Passes
+                            </a>
+                            <a href="{% url 'taxes:my_invoices' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                🧾 My Tax Invoices
                             </a>
                             <a href="{% url 'accounts:profile' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                 <i class="fas fa-user mr-2"></i>Profile

@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Airport Taxes & Levies | NAIA{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<div class="bg-gradient-to-br from-naia-green to-green-800 text-white py-14">
+    <div class="max-w-4xl mx-auto px-4 text-center">
+        <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-file-invoice-dollar text-3xl"></i>
+        </div>
+        <h1 class="text-4xl font-bold mb-3">Airport Taxes &amp; Levies</h1>
+        <p class="text-white/80 text-lg max-w-2xl mx-auto">
+            Look up government-mandated taxes and airport levies applied to your booking.
+            All charges are collected on behalf of the Federal Government of Nigeria and NAIA.
+        </p>
+    </div>
+</div>
+
+<!-- Lookup Form -->
+<div class="bg-white py-10">
+    <div class="max-w-xl mx-auto px-4">
+        <div class="bg-gray-50 border border-gray-200 rounded-2xl p-6 shadow-sm">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <i class="fas fa-search text-naia-green"></i> Look Up Your Tax Invoice
+            </h2>
+            <form method="get">
+                <div class="flex gap-3">
+                    {{ form.booking_reference }}
+                    <button type="submit"
+                            class="bg-naia-green text-white px-5 py-3 rounded-lg font-medium hover:bg-naia-green-dark transition whitespace-nowrap">
+                        Search
+                    </button>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">
+                    Enter your flight booking reference (e.g. R6Y6BU), hotel booking reference (HTL-XXXXXX),
+                    or lounge reference (LNG-XXXXXX).
+                </p>
+            </form>
+        </div>
+
+        <!-- Search Results -->
+        {% if invoices is not None %}
+        <div class="mt-8">
+            <h3 class="text-base font-semibold text-gray-800 mb-4">
+                {% if invoices %}
+                    {{ invoices.count }} invoice{{ invoices.count|pluralize }} found
+                {% else %}
+                    No invoices found
+                {% endif %}
+            </h3>
+            {% for invoice in invoices %}
+            <div class="bg-white border border-gray-200 rounded-xl p-5 mb-4 shadow-sm hover:shadow-md transition">
+                <div class="flex items-start justify-between mb-3">
+                    <div>
+                        <p class="font-bold text-gray-900">{{ invoice.invoice_number }}</p>
+                        <p class="text-sm text-gray-500">{{ invoice.get_service_type_display }} · {{ invoice.booking_reference }}</p>
+                    </div>
+                    {% if invoice.is_paid %}
+                    <span class="bg-green-100 text-green-700 text-xs font-semibold px-3 py-1 rounded-full">Paid</span>
+                    {% else %}
+                    <span class="bg-yellow-100 text-yellow-700 text-xs font-semibold px-3 py-1 rounded-full">Unpaid</span>
+                    {% endif %}
+                </div>
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">{{ invoice.passenger_name }}</p>
+                        <p class="text-lg font-bold text-naia-green">₦{{ invoice.total_tax_amount|floatformat:2 }}</p>
+                    </div>
+                    <a href="{% url 'taxes:invoice_detail' invoice.invoice_number %}"
+                       class="bg-naia-green text-white text-sm px-4 py-2 rounded-lg hover:bg-naia-green-dark transition">
+                        View Invoice
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Info Cards -->
+<div class="bg-gray-50 py-12">
+    <div class="max-w-6xl mx-auto px-4">
+        <h2 class="text-2xl font-bold text-gray-900 text-center mb-8">What Are Airport Taxes?</h2>
+        <div class="grid md:grid-cols-3 gap-6 mb-12">
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 text-center">
+                <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-government text-blue-600 text-lg"></i>
+                </div>
+                <h3 class="font-semibold text-gray-900 mb-2">Government Levies</h3>
+                <p class="text-sm text-gray-600">
+                    Mandated by the Federal Government of Nigeria. Includes VAT (7.5%), Departure Tax,
+                    and Customs Stamp Duty — remitted to the FIRS.
+                </p>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 text-center">
+                <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-building text-green-600 text-lg"></i>
+                </div>
+                <h3 class="font-semibold text-gray-900 mb-2">Airport Charges</h3>
+                <p class="text-sm text-gray-600">
+                    Retained by Nnamdi Azikiwe International Airport for infrastructure maintenance.
+                    Includes Passenger Service Charge (PSC) and Airport Development Levy (ADL).
+                </p>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 text-center">
+                <div class="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-shield-alt text-amber-600 text-lg"></i>
+                </div>
+                <h3 class="font-semibold text-gray-900 mb-2">Security Fees</h3>
+                <p class="text-sm text-gray-600">
+                    Covers airport security operations, screening equipment, and safety personnel.
+                    Applied per departing passenger as mandated by NCAA.
+                </p>
+            </div>
+        </div>
+
+        <!-- Active Tax Rates Summary -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="px-6 py-4 bg-naia-green text-white flex items-center justify-between">
+                <h3 class="font-semibold text-lg">Current Tax Rates</h3>
+                <a href="{% url 'taxes:rates' %}" class="text-white/80 text-sm hover:text-white">
+                    Full Rate Schedule <i class="fas fa-arrow-right ml-1"></i>
+                </a>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+                        <tr>
+                            <th class="px-4 py-3 text-left">Code</th>
+                            <th class="px-4 py-3 text-left">Tax Name</th>
+                            <th class="px-4 py-3 text-left">Applies To</th>
+                            <th class="px-4 py-3 text-right">Rate / Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        {% for tax in active_taxes %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-3 font-mono font-semibold text-naia-green">{{ tax.code }}</td>
+                            <td class="px-4 py-3 text-gray-900">{{ tax.name }}</td>
+                            <td class="px-4 py-3 text-gray-600">{{ tax.get_applicability_display }}</td>
+                            <td class="px-4 py-3 text-right font-semibold text-gray-900">
+                                {% if tax.rate_type == 'PERCENT' %}
+                                    {{ tax.rate }}%
+                                {% else %}
+                                    ₦{{ tax.rate|floatformat:0 }}/pax
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="px-4 py-6 text-center text-gray-400">
+                                No tax rates configured yet. Visit the Admin panel to add tax types.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="mt-6 text-center text-sm text-gray-500">
+            Questions about your tax invoice?
+            <a href="{% url 'core:contact' %}" class="text-naia-green hover:underline font-medium">Contact NAIA Revenue Office</a>
+            or view our
+            <a href="{% url 'taxes:rates' %}" class="text-naia-green hover:underline font-medium">full rate schedule</a>.
+        </div>
+    </div>
+</div>
+{% endblock %}

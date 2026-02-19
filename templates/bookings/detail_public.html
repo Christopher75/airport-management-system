@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Booking {{ booking.reference }} | NAIA{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen py-10">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <div class="w-16 h-16 bg-naia-green rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-ticket-alt text-white text-2xl"></i>
+            </div>
+            <h1 class="text-3xl font-bold text-gray-900">Booking Details</h1>
+            <p class="text-gray-600 mt-1">Reference: <span class="font-bold text-naia-green">{{ booking.reference }}</span></p>
+        </div>
+
+        <!-- Status Banner -->
+        <div class="mb-6 text-center">
+            {% if booking.status == 'CONFIRMED' %}
+                <span class="inline-flex items-center gap-2 bg-green-100 text-green-800 text-sm font-semibold px-4 py-2 rounded-full">
+                    <i class="fas fa-check-circle"></i> Confirmed
+                </span>
+            {% elif booking.status == 'PENDING' %}
+                <span class="inline-flex items-center gap-2 bg-yellow-100 text-yellow-800 text-sm font-semibold px-4 py-2 rounded-full">
+                    <i class="fas fa-clock"></i> Pending Payment
+                </span>
+            {% elif booking.status == 'CANCELLED' %}
+                <span class="inline-flex items-center gap-2 bg-red-100 text-red-800 text-sm font-semibold px-4 py-2 rounded-full">
+                    <i class="fas fa-times-circle"></i> Cancelled
+                </span>
+            {% elif booking.status == 'CHECKED_IN' %}
+                <span class="inline-flex items-center gap-2 bg-blue-100 text-blue-800 text-sm font-semibold px-4 py-2 rounded-full">
+                    <i class="fas fa-plane-departure"></i> Checked In
+                </span>
+            {% else %}
+                <span class="inline-flex items-center gap-2 bg-gray-100 text-gray-700 text-sm font-semibold px-4 py-2 rounded-full">
+                    {{ booking.get_status_display }}
+                </span>
+            {% endif %}
+        </div>
+
+        <!-- Flight Info Card -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden mb-6">
+            <div class="bg-naia-green px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    {% if booking.flight.airline.logo %}
+                        <img src="{{ booking.flight.airline.logo.url }}" alt="{{ booking.flight.airline.name }}" class="h-10 w-10 object-contain bg-white rounded p-0.5">
+                    {% else %}
+                        <div class="w-10 h-10 bg-white rounded flex items-center justify-center">
+                            <i class="fas fa-plane text-naia-green"></i>
+                        </div>
+                    {% endif %}
+                    <div>
+                        <p class="text-white font-bold text-lg">{{ booking.flight.flight_number }}</p>
+                        <p class="text-white/80 text-sm">{{ booking.flight.airline.name }}</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="text-white/80 text-xs">Cabin</p>
+                    <p class="text-white font-semibold">{{ booking.get_seat_class_display }}</p>
+                </div>
+            </div>
+
+            <div class="p-6">
+                <!-- Route -->
+                <div class="flex items-center justify-between bg-gray-50 rounded-xl p-4 mb-6">
+                    <div class="text-center">
+                        <p class="text-2xl font-bold text-gray-900">{{ booking.flight.scheduled_departure|time:"H:i" }}</p>
+                        <p class="text-xl font-bold text-naia-green">{{ booking.flight.origin.code }}</p>
+                        <p class="text-sm text-gray-500">{{ booking.flight.origin.city }}</p>
+                    </div>
+                    <div class="flex-1 mx-4 text-center">
+                        <p class="text-xs text-gray-400 mb-1">{{ booking.flight.duration }}</p>
+                        <div class="relative h-0.5 bg-naia-green">
+                            <i class="fas fa-plane absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-naia-green bg-gray-50 px-2 text-sm"></i>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-1">{{ booking.flight.scheduled_departure|date:"d M Y" }}</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-2xl font-bold text-gray-900">{{ booking.flight.scheduled_arrival|time:"H:i" }}</p>
+                        <p class="text-xl font-bold text-naia-green">{{ booking.flight.destination.code }}</p>
+                        <p class="text-sm text-gray-500">{{ booking.flight.destination.city }}</p>
+                    </div>
+                </div>
+
+                <!-- Quick Info -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <p class="text-gray-500 text-xs">Passengers</p>
+                        <p class="font-semibold text-gray-900">{{ booking.passenger_count }}</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <p class="text-gray-500 text-xs">Booked On</p>
+                        <p class="font-semibold text-gray-900">{{ booking.created_at|date:"d M Y" }}</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <p class="text-gray-500 text-xs">Base Fare</p>
+                        <p class="font-semibold text-gray-900">₦{{ booking.base_price|floatformat:0 }}</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <p class="text-gray-500 text-xs">Total Paid</p>
+                        <p class="font-semibold text-naia-green">₦{{ booking.total_price|floatformat:0 }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Passengers -->
+        {% if passengers %}
+        <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <i class="fas fa-users text-naia-green"></i> Passengers
+            </h2>
+            <div class="space-y-3">
+                {% for passenger in passengers %}
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 bg-naia-green text-white rounded-full flex items-center justify-center font-bold text-sm">
+                            {{ forloop.counter }}
+                        </div>
+                        <div>
+                            <p class="font-medium text-gray-900">
+                                {{ passenger.get_title_display }} {{ passenger.first_name }} {{ passenger.last_name }}
+                            </p>
+                            <p class="text-xs text-gray-500">
+                                {{ passenger.get_passenger_type_display }}
+                                {% if passenger.seat_number %}&nbsp;· Seat {{ passenger.seat_number }}{% endif %}
+                                {% if passenger.is_checked_in %}&nbsp;· <span class="text-green-600 font-medium">Checked In</span>{% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Price Breakdown -->
+        <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <i class="fas fa-receipt text-naia-green"></i> Price Breakdown
+            </h2>
+            <div class="space-y-2 text-sm">
+                <div class="flex justify-between py-1">
+                    <span class="text-gray-600">Base Fare</span>
+                    <span class="font-medium">₦{{ booking.base_price|floatformat:2 }}</span>
+                </div>
+                {% if booking.taxes %}
+                <div class="flex justify-between py-1">
+                    <span class="text-gray-600">Taxes &amp; Levies</span>
+                    <span class="font-medium">₦{{ booking.taxes|floatformat:2 }}</span>
+                </div>
+                {% endif %}
+                {% if booking.fees %}
+                <div class="flex justify-between py-1">
+                    <span class="text-gray-600">Airport Fees</span>
+                    <span class="font-medium">₦{{ booking.fees|floatformat:2 }}</span>
+                </div>
+                {% endif %}
+                {% if booking.discount %}
+                <div class="flex justify-between py-1 text-green-600">
+                    <span>Discount</span>
+                    <span>-₦{{ booking.discount|floatformat:2 }}</span>
+                </div>
+                {% endif %}
+                <div class="border-t pt-2 mt-2 flex justify-between font-bold text-base">
+                    <span class="text-gray-900">Total</span>
+                    <span class="text-naia-green">₦{{ booking.total_price|floatformat:2 }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+            {% if booking.status == 'CONFIRMED' %}
+            <a href="{% url 'bookings:checkin_start' %}"
+               class="bg-naia-green text-white px-6 py-3 rounded-lg font-medium hover:bg-naia-green-dark transition text-center">
+                <i class="fas fa-plane-departure mr-2"></i>Online Check-in
+            </a>
+            <a href="{% url 'bookings:eticket' booking.reference %}"
+               class="bg-white border border-naia-green text-naia-green px-6 py-3 rounded-lg font-medium hover:bg-green-50 transition text-center">
+                <i class="fas fa-download mr-2"></i>Download E-Ticket
+            </a>
+            {% endif %}
+            <button onclick="window.print()"
+                    class="bg-white border border-gray-300 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-50 transition">
+                <i class="fas fa-print mr-2"></i>Print
+            </button>
+            <a href="{% url 'flights:search' %}"
+               class="bg-white border border-gray-300 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-50 transition text-center">
+                <i class="fas fa-search mr-2"></i>Search Flights
+            </a>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
