@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Register Aircraft Parking – NAIA{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div class="mb-6">
+        <a href="{% url 'airlines:parking_dashboard' %}" class="text-blue-600 hover:text-blue-800 text-sm">← Back to Dashboard</a>
+        <h1 class="text-3xl font-bold text-gray-900 mt-2">Register Aircraft Parking</h1>
+        <p class="text-gray-500 mt-1">Schedule an aircraft stand allocation. Fees are auto-calculated based on duration and size.</p>
+    </div>
+
+    <div class="grid lg:grid-cols-3 gap-8">
+        <!-- Form -->
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-xl shadow p-6">
+                <form method="post">
+                    {% csrf_token %}
+                    {% if form.non_field_errors %}
+                    <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                        {{ form.non_field_errors }}
+                    </div>
+                    {% endif %}
+
+                    <div class="grid sm:grid-cols-2 gap-5">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Aircraft</label>
+                            {{ form.aircraft }}
+                            {% if form.aircraft.errors %}<p class="text-red-500 text-xs mt-1">{{ form.aircraft.errors.0 }}</p>{% endif %}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Aircraft Size Category</label>
+                            {{ form.aircraft_size }}
+                            {% if form.aircraft_size.errors %}<p class="text-red-500 text-xs mt-1">{{ form.aircraft_size.errors.0 }}</p>{% endif %}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Stand</label>
+                            {{ form.stand }}
+                            {% if form.stand.errors %}<p class="text-red-500 text-xs mt-1">{{ form.stand.errors.0 }}</p>{% endif %}
+                        </div>
+                        <div></div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Scheduled Arrival</label>
+                            {{ form.scheduled_arrival }}
+                            {% if form.scheduled_arrival.errors %}<p class="text-red-500 text-xs mt-1">{{ form.scheduled_arrival.errors.0 }}</p>{% endif %}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Scheduled Departure</label>
+                            {{ form.scheduled_departure }}
+                            {% if form.scheduled_departure.errors %}<p class="text-red-500 text-xs mt-1">{{ form.scheduled_departure.errors.0 }}</p>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mt-5 grid sm:grid-cols-2 gap-4">
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            {{ form.gpu_requested }}
+                            <span class="text-sm text-gray-700 font-medium">Request Ground Power Unit (GPU)</span>
+                        </label>
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            {{ form.pca_requested }}
+                            <span class="text-sm text-gray-700 font-medium">Request Pre-Conditioned Air (PCA)</span>
+                        </label>
+                    </div>
+
+                    <div class="mt-5">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Notes / Special Instructions</label>
+                        {{ form.notes }}
+                    </div>
+
+                    <div class="mt-6 flex gap-4">
+                        <button type="submit"
+                                class="flex-1 bg-blue-700 hover:bg-blue-800 text-white py-3 rounded-lg font-semibold transition">
+                            Register & Calculate Fees
+                        </button>
+                        <a href="{% url 'airlines:parking_dashboard' %}"
+                           class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition font-medium">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Rate Card Sidebar -->
+        <div>
+            <div class="bg-white rounded-xl shadow p-5 sticky top-6">
+                <h3 class="text-base font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <span class="w-6 h-6 bg-blue-100 text-blue-600 rounded text-center text-sm">₦</span>
+                    Current Parking Rates
+                </h3>
+                {% for rate in rates %}
+                <div class="mb-4 pb-4 border-b border-gray-100 last:border-0 last:mb-0 last:pb-0">
+                    <p class="text-sm font-semibold text-gray-700 mb-2">{{ rate.get_aircraft_size_display }}</p>
+                    <div class="space-y-1 text-xs text-gray-600">
+                        <div class="flex justify-between">
+                            <span>Landing Fee</span>
+                            <span class="font-medium">₦{{ rate.landing_fee|floatformat:0 }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Per Hour</span>
+                            <span class="font-medium">₦{{ rate.hourly_rate|floatformat:0 }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Per Day</span>
+                            <span class="font-medium">₦{{ rate.daily_rate|floatformat:0 }}</span>
+                        </div>
+                        {% if rate.gpu_hourly_rate %}
+                        <div class="flex justify-between text-amber-700">
+                            <span>GPU/hr</span>
+                            <span class="font-medium">₦{{ rate.gpu_hourly_rate|floatformat:0 }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-sm text-gray-400">No rates configured. Contact airport admin.</p>
+                {% endfor %}
+                <a href="{% url 'airlines:parking_rates' %}" class="block text-center text-xs text-blue-600 mt-3 hover:underline">Full rate card →</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

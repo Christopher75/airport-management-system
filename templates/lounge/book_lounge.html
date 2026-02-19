@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Book Lounge Pass – {{ lounge.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <a href="{% url 'lounge:lounge_list' %}" class="text-amber-600 hover:text-amber-800 text-sm mb-4 inline-block">← Back to Lounges</a>
+    <h1 class="text-3xl font-bold text-gray-900 mb-1">{{ lounge.name }}</h1>
+    <p class="text-gray-500 mb-8">Terminal {{ lounge.terminal }} · {{ lounge.location_description }}</p>
+
+    <div class="grid lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-2xl shadow p-6">
+                <h2 class="text-lg font-semibold text-gray-800 mb-5 pb-3 border-b">Booking Details</h2>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="grid sm:grid-cols-2 gap-5">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Visit Date *</label>
+                            <input type="date" name="visit_date" min="{{ today|date:'Y-m-d' }}" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Flight Number (Optional)</label>
+                            <input type="text" name="flight_number" placeholder="e.g. W3 203"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Adults *</label>
+                            <input type="number" name="num_adults" value="{{ num_adults }}" min="1" max="10"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Children (under 12)</label>
+                            <input type="number" name="num_children" value="{{ num_children }}" min="0" max="10"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none text-sm">
+                            {% if lounge.child_price == 0 %}
+                            <p class="text-xs text-green-600 mt-1">Children enter FREE</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Guest Name *</label>
+                            <input type="text" name="guest_name" value="{{ user.get_full_name }}" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                            <input type="email" name="guest_email" value="{{ user.email }}" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none text-sm">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Phone (Optional)</label>
+                            <input type="text" name="guest_phone" placeholder="+234..."
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none text-sm">
+                        </div>
+                    </div>
+
+                    <div class="mt-5 p-4 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800">
+                        Payment of <strong>₦{{ total|floatformat:2 }}</strong> will be processed on submission.
+                        Your access code will be displayed immediately.
+                    </div>
+
+                    <button type="submit" class="mt-5 w-full bg-amber-600 hover:bg-amber-700 text-white py-3 rounded-xl font-bold text-lg transition">
+                        Confirm & Pay ₦{{ total|floatformat:2 }}
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Summary -->
+        <div>
+            <div class="bg-white rounded-2xl shadow p-5 sticky top-6">
+                <h3 class="font-semibold text-gray-800 mb-4 pb-3 border-b">Pass Summary</h3>
+                <dl class="space-y-3 text-sm">
+                    <div class="flex justify-between">
+                        <dt class="text-gray-500">Adults</dt>
+                        <dd class="font-medium">{{ num_adults }} × ₦{{ lounge.day_pass_price|floatformat:0 }}</dd>
+                    </div>
+                    {% if num_children %}
+                    <div class="flex justify-between">
+                        <dt class="text-gray-500">Children</dt>
+                        <dd class="font-medium">{{ num_children }} × {% if lounge.child_price == 0 %}Free{% else %}₦{{ lounge.child_price|floatformat:0 }}{% endif %}</dd>
+                    </div>
+                    {% endif %}
+                    <div class="flex justify-between text-gray-500">
+                        <dt>Subtotal</dt>
+                        <dd>₦{{ subtotal|floatformat:2 }}</dd>
+                    </div>
+                    <div class="flex justify-between text-gray-500">
+                        <dt>VAT (7.5%)</dt>
+                        <dd>₦{{ vat|floatformat:2 }}</dd>
+                    </div>
+                    <div class="flex justify-between font-bold text-base pt-3 border-t">
+                        <dt class="text-gray-800">Total</dt>
+                        <dd class="text-amber-700 text-lg">₦{{ total|floatformat:2 }}</dd>
+                    </div>
+                </dl>
+                <div class="mt-4 text-xs text-gray-400 space-y-1">
+                    <p>✓ Valid on {{ today|date:"d M Y" }}</p>
+                    <p>✓ Up to 3 hours per session</p>
+                    <p>✓ Access code shown on confirmation</p>
+                </div>
+
+                <!-- Amenities recap -->
+                <div class="mt-4 pt-4 border-t">
+                    <p class="text-xs text-gray-500 font-semibold mb-2 uppercase">Includes</p>
+                    <div class="space-y-1 text-xs text-gray-600">
+                        {% if lounge.has_wifi %}<p>📶 Free High-Speed WiFi</p>{% endif %}
+                        {% if lounge.has_food %}<p>🍽 Complimentary Food & Beverages</p>{% endif %}
+                        {% if lounge.has_shower %}<p>🚿 Shower Facilities</p>{% endif %}
+                        {% if lounge.has_spa %}<p>💆 Spa & Wellness</p>{% endif %}
+                        {% if lounge.has_business_centre %}<p>💼 Business Centre</p>{% endif %}
+                        {% if lounge.has_prayer_room %}<p>🕌 Prayer Room</p>{% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

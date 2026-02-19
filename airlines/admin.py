@@ -6,7 +6,13 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 
-from .models import Aircraft, Airline
+from .models import (
+    Aircraft,
+    Airline,
+    AircraftParkingRate,
+    AircraftParkingRecord,
+    AircraftStand,
+)
 
 
 class AircraftInline(admin.TabularInline):
@@ -204,3 +210,45 @@ class AircraftAdmin(admin.ModelAdmin):
         return "-"
 
     age.short_description = _("Age")
+
+
+# ============================================================
+# Aircraft Parking Management Admin
+# ============================================================
+
+@admin.register(AircraftStand)
+class AircraftStandAdmin(admin.ModelAdmin):
+    list_display = ("stand_number", "terminal", "stand_type", "max_aircraft_size", "has_jetway", "has_gpu", "has_pca", "is_active")
+    list_filter = ("terminal", "stand_type", "max_aircraft_size", "is_active")
+    search_fields = ("stand_number", "terminal")
+    ordering = ("terminal", "stand_number")
+
+
+@admin.register(AircraftParkingRate)
+class AircraftParkingRateAdmin(admin.ModelAdmin):
+    list_display = ("aircraft_size", "landing_fee", "hourly_rate", "daily_rate", "weekly_rate", "effective_from")
+    ordering = ("aircraft_size",)
+
+
+@admin.register(AircraftParkingRecord)
+class AircraftParkingRecordAdmin(admin.ModelAdmin):
+    list_display = (
+        "record_number", "airline", "aircraft", "stand",
+        "aircraft_size", "scheduled_arrival", "duration_display",
+        "total_due", "is_paid", "status",
+    )
+    list_filter = ("status", "is_paid", "aircraft_size", "airline")
+    search_fields = ("record_number", "aircraft__registration", "airline__name", "payment_reference")
+    ordering = ("-scheduled_arrival",)
+    readonly_fields = ("record_number", "duration_display", "total_due", "landing_fee", "parking_fee", "service_fee")
+    actions = ["recalculate_fees"]
+
+    def recalculate_fees(self, request, queryset):
+        for record in queryset:
+            record.calculate_and_save_fees()
+        self.message_user(request, f"Fees recalculated for {queryset.count()} record(s).")
+    recalculate_fees.short_description = "Recalculate fees for selected records"
+
+    def duration_display(self, obj):
+        return obj.duration_display
+    duration_display.short_description = _("Duration")

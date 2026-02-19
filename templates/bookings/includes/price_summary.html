@@ -1,4 +1,4 @@
-<!-- Price Summary Sidebar -->
+<!-- Price Summary Sidebar — with itemized tax & fee breakdown -->
 <div class="bg-white rounded-xl shadow-md p-6 sticky top-24">
     <h3 class="text-lg font-semibold text-gray-900 mb-4">Price Summary</h3>
 
@@ -14,41 +14,80 @@
             </span>
         </div>
         <div class="flex items-center text-sm text-gray-600 mt-2">
-            <span class="font-medium">{{ flight.origin.code }}</span>
-            <i class="fas fa-long-arrow-alt-right mx-2 text-naia-green"></i>
-            <span class="font-medium">{{ flight.destination.code }}</span>
+            <span class="font-medium">{{ flight.origin.iata_code }}</span>
+            <svg class="w-4 h-4 mx-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+            </svg>
+            <span class="font-medium">{{ flight.destination.iata_code }}</span>
         </div>
         <p class="text-sm text-gray-500 mt-1">
             {{ flight.scheduled_departure|date:"D, M d" }} at {{ flight.scheduled_departure|time:"H:i" }}
         </p>
     </div>
 
-    <!-- Price Breakdown -->
-    <div class="space-y-3">
-        <div class="flex justify-between text-sm">
+    <!-- Price Breakdown — itemized -->
+    <div class="space-y-2.5 text-sm">
+
+        <!-- Base fare -->
+        <div class="flex justify-between">
             <span class="text-gray-600">
-                {% if booking_data %}
-                    {{ booking_data.seat_class|default:"ECONOMY" }} x {{ booking_data.passenger_count|default:"1" }}
-                {% else %}
-                    {{ seat_class|default:"ECONOMY" }} x {{ passengers|default:"1" }}
-                {% endif %}
+                Base Fare
+                ({% if booking_data %}{{ booking_data.seat_class|default:"ECONOMY" }}{% else %}{{ seat_class|default:"ECONOMY" }}{% endif %}
+                × {% if booking_data %}{{ booking_data.passenger_count|default:"1" }}{% else %}{{ passengers|default:"1" }}{% endif %} pax)
             </span>
-            <span class="text-gray-900">
-                NGN {% if booking_data %}{{ booking_data.base_price|floatformat:0 }}{% else %}{{ base_price|floatformat:0 }}{% endif %}
+            <span class="text-gray-900 font-medium">
+                ₦{% if booking_data %}{{ booking_data.base_price|floatformat:0 }}{% else %}{{ base_price|floatformat:0 }}{% endif %}
             </span>
         </div>
 
-        <div class="flex justify-between text-sm">
-            <span class="text-gray-600">Taxes & Fees</span>
-            <span class="text-gray-900">
-                NGN {% if booking_data %}{{ booking_data.taxes|floatformat:0 }}{% else %}{{ taxes|floatformat:0 }}{% endif %}
-            </span>
+        <!-- Itemized government & airport charges -->
+        <div class="bg-gray-50 rounded-lg p-3 space-y-1.5 text-xs">
+            <p class="text-gray-500 font-semibold text-xs uppercase mb-2">Taxes & Airport Charges</p>
+
+            <!-- ADL -->
+            <div class="flex justify-between text-gray-600">
+                <span>Airport Development Levy (ADL)</span>
+                <span class="font-medium">
+                    {% if booking_data %}
+                    ₦{% widthratio booking_data.base_price 100 5 %}
+                    {% else %}
+                    Included
+                    {% endif %}
+                </span>
+            </div>
+
+            <!-- VAT -->
+            <div class="flex justify-between text-gray-600">
+                <span>Value Added Tax (VAT) 7.5%</span>
+                <span class="font-medium">Included</span>
+            </div>
+
+            <!-- Security fee -->
+            <div class="flex justify-between text-gray-600">
+                <span>Security & Safety Fee</span>
+                <span class="font-medium">₦2,500/pax</span>
+            </div>
+
+            <!-- Fuel surcharge -->
+            <div class="flex justify-between text-gray-600">
+                <span>Fuel Surcharge</span>
+                <span class="font-medium">₦3,000/pax</span>
+            </div>
+
+            <!-- Total taxes -->
+            <div class="flex justify-between text-gray-700 font-semibold border-t border-gray-200 pt-1.5 mt-1">
+                <span>Total Taxes</span>
+                <span>
+                    ₦{% if booking_data %}{{ booking_data.taxes|floatformat:0 }}{% else %}{{ taxes|floatformat:0 }}{% endif %}
+                </span>
+            </div>
         </div>
 
-        <div class="flex justify-between text-sm">
-            <span class="text-gray-600">Service Fee</span>
-            <span class="text-gray-900">
-                NGN {% if booking_data %}{{ booking_data.fees|floatformat:0 }}{% else %}{{ fees|floatformat:0 }}{% endif %}
+        <!-- Service fee -->
+        <div class="flex justify-between">
+            <span class="text-gray-600">NAIA Service Fee</span>
+            <span class="text-gray-900 font-medium">
+                ₦{% if booking_data %}{{ booking_data.fees|floatformat:0 }}{% else %}{{ fees|floatformat:0 }}{% endif %}
             </span>
         </div>
     </div>
@@ -57,19 +96,28 @@
     <div class="border-t mt-4 pt-4">
         <div class="flex justify-between items-center">
             <span class="text-lg font-semibold text-gray-900">Total</span>
-            <span class="text-2xl font-bold text-naia-green">
-                NGN {% if booking_data %}{{ booking_data.total|floatformat:0 }}{% else %}{{ total|floatformat:0 }}{% endif %}
+            <span class="text-2xl font-bold text-green-700">
+                ₦{% if booking_data %}{{ booking_data.total|floatformat:0 }}{% else %}{{ total|floatformat:0 }}{% endif %}
             </span>
         </div>
-        <p class="text-xs text-gray-500 mt-1">All prices in Nigerian Naira (NGN)</p>
+        <p class="text-xs text-gray-400 mt-1">All prices in Nigerian Naira (NGN)</p>
+        <p class="text-xs text-gray-400 mt-0.5">Includes all taxes, levies & airport fees</p>
+    </div>
+
+    <!-- Payment destination note -->
+    <div class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+        <p class="text-xs text-blue-700 font-semibold mb-1">Payment Routing</p>
+        <p class="text-xs text-blue-600">
+            Base fare goes directly to <strong>{{ flight.airline.name }}</strong>.<br>
+            Airport charges & fees are retained by NAIA.
+        </p>
     </div>
 
     <!-- Help -->
-    <div class="mt-6 p-4 bg-gray-50 rounded-lg">
-        <p class="text-sm text-gray-600">
-            <i class="fas fa-info-circle text-naia-green mr-2"></i>
-            Need help? Contact our support team at
-            <a href="tel:+2349123456789" class="text-naia-green">+234 9 123 4567</a>
+    <div class="mt-4 p-3 bg-gray-50 rounded-lg">
+        <p class="text-xs text-gray-600">
+            Need help? Call
+            <a href="tel:+2349123456789" class="text-green-700 font-medium">+234 9 123 4567</a>
         </p>
     </div>
 </div>

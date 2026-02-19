@@ -655,3 +655,146 @@ class DownloadETicketPublicView(View):
         except Exception as e:
             messages.error(request, f"Unable to generate e-ticket: {str(e)}")
             return redirect("bookings:detail", reference=reference)
+
+
+# ============================================================
+# Online Check-in
+# ============================================================
+
+class OnlineCheckinStartView(View):
+    """
+    Step 1: Passenger enters their booking reference and last name to begin check-in.
+    Online check-in is available from 48 hours to 1 hour before departure.
+    """
+    template_name = "bookings/checkin_start.html"
+
+    def get(self, request):
+        return render(request, self.template_name, {"page_title": "Online Check-in"})
+
+    def post(self, request):
+        reference = request.POST.get("reference", "").strip().upper()
+        last_name = request.POST.get("last_name", "").strip()
+
+        if not reference or not last_name:
+            messages.error(request, "Please enter your booking reference and last name.")
+            return render(request, self.template_name)
+
+        try:
+            booking = Booking.objects.select_related("flight", "flight__airline").get(
+                reference=reference
+            )
+        except Booking.DoesNotExist:
+            messages.error(request, "Booking not found. Please check your reference.")
+            return render(request, self.template_name)
+
+        # Verify passenger last name
+        if not booking.passengers.filter(last_name__iexact=last_name).exists():
+            messages.error(request, "Last name does not match our records for this booking.")
+            return render(request, self.template_name)
+
+        # Check booking status
+        if booking.status not in (BookingStatus.CONFIRMED, BookingStatus.CHECKED_IN):
+            messages.error(
+                request,
+                f"This booking cannot be checked in. Current status: {booking.get_status_display()}",
+            )
+            return render(request, self.template_name)
+
+        # Check time window: 48h before departure, not less than 1h before
+        now = timezone.now()
+        departure = booking.flight.scheduled_departure
+        hours_until_departure = (departure - now).total_seconds() / 3600
+
+        if hours_until_departure > 48:
+            messages.warning(
+                request,
+                f"Online check-in is not yet open. It opens 48 hours before departure "
+                f"({departure - timezone.timedelta(hours=48):%d %b %Y at %H:%M}).",
+            )
+            return render(request, self.template_name)
+
+        if hours_until_departure < 1:
+            messages.error(
+                request,
+                "Online check-in has closed. Please check in at the airport counter.",
+            )
+            return render(request, self.template_name)
+
+        # All good — forward to check-in form
+        return redirect("bookings:checkin_verify", reference=reference)
+
+
+class OnlineCheckinVerifyView(View):
+    """
+    Step 2: Show passenger list and confirm check-in for each.
+    """
+    template_name = "bookings/checkin_verify.html"
+
+    def get_booking(self, reference):
+        return get_object_or_404(
+            Booking.objects.select_related(
+                "flight", "flight__airline", "flight__origin", "flight__destination",
+                "flight__departure_gate",
+            ).prefetch_related("passengers"),
+            reference=reference,
+        )
+
+    def get(self, request, reference):
+        booking = self.get_booking(reference)
+        context = {
+            "booking": booking,
+            "passengers": booking.passengers.all(),
+            "page_title": f"Check-in – {booking.reference}",
+        }
+        return render(request, self.template_name, context)
+
+    def post(self, request, reference):
+        booking = self.get_booking(reference)
+        now = timezone.now()
+        checked_in_count = 0
+
+        for passenger in booking.passengers.all():
+            if not passenger.is_checked_in:
+                passenger.is_checked_in = True
+                passenger.checked_in_at = now
+                passenger.save(update_fields=["is_checked_in", "checked_in_at"])
+                checked_in_count += 1
+
+        # Update booking status to CHECKED_IN if not already
+        if booking.status == BookingStatus.CONFIRMED:
+            booking.status = BookingStatus.CHECKED_IN
+            booking.save(update_fields=["status"])
+
+        messages.success(
+            request,
+            f"Check-in complete for {checked_in_count} passenger(s). "
+            "Your boarding passes are ready below.",
+        )
+        return redirect("bookings:boarding_pass", reference=reference)
+
+
+class BoardingPassView(View):
+    """
+    Step 3: Display boarding passes for all checked-in passengers.
+    """
+    template_name = "bookings/boarding_pass.html"
+
+    def get(self, request, reference):
+        booking = get_object_or_404(
+            Booking.objects.select_related(
+                "flight", "flight__airline", "flight__origin",
+                "flight__destination", "flight__departure_gate",
+            ).prefetch_related("passengers"),
+            reference=reference,
+        )
+
+        if booking.status not in (BookingStatus.CHECKED_IN, BookingStatus.BOARDED):
+            messages.error(request, "Please complete check-in first.")
+            return redirect("bookings:checkin_start")
+
+        context = {
+            "booking": booking,
+            "passengers": booking.passengers.filter(is_checked_in=True),
+            "page_title": "Boarding Pass",
+        }
+        return render(request, self.template_name, context)

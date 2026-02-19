@@ -44,8 +44,17 @@ urlpatterns = [
     # Analytics Dashboard (staff only)
     path("analytics/", include("analytics.urls")),
 
-    # Parking
+    # Parking (passenger vehicles)
     path("parking/", include("parking.urls")),
+
+    # Airlines & Aircraft Parking Management
+    path("airlines/", include("airlines.urls")),
+
+    # Hotel Booking
+    path("hotels/", include("hotels.urls")),
+
+    # Airport Lounge Booking
+    path("lounges/", include("lounge.urls")),
 
     # Authentication (django-allauth)
     path("accounts/", include("allauth.urls")),

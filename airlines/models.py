@@ -2,9 +2,15 @@
 Airline and Aircraft models for the Airport Management System.
 
 Manages airline companies, their fleets, and aircraft information.
+Also includes Aircraft Parking Management (stands, rates, records).
 """
 
+import random
+import string
+from decimal import Decimal
+
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from core.models import TimeStampedModel
@@ -279,3 +285,255 @@ class Aircraft(TimeStampedModel):
         if calculated_total > 0:
             self.total_seats = calculated_total
         super().save(*args, **kwargs)
+
+
+# ============================================================
+# Aircraft Parking Management
+# ============================================================
+
+
+class AircraftSizeCategory(models.TextChoices):
+    """ICAO/IATA aircraft size classifications for parking fee calculation."""
+    LIGHT = "LIGHT", _("Light (< 7,000 kg MTOW)")
+    SMALL = "SMALL", _("Small (7,000–27,000 kg MTOW)")
+    MEDIUM = "MEDIUM", _("Medium (27,000–136,000 kg MTOW)")
+    LARGE = "LARGE", _("Large (136,000–300,000 kg MTOW)")
+    HEAVY = "HEAVY", _("Heavy (> 300,000 kg MTOW)")
+
+
+class StandType(models.TextChoices):
+    CONTACT = "CONTACT", _("Contact Stand (Jetway)")
+    REMOTE = "REMOTE", _("Remote Stand (Bus Transfer)")
+    CARGO = "CARGO", _("Cargo Stand")
+    MAINTENANCE = "MAINT", _("Maintenance Bay")
+
+
+class AircraftStand(TimeStampedModel):
+    """
+    Represents an aircraft parking stand/bay at the airport.
+
+    Each stand has a type, terminal assignment, and maximum aircraft size it can accommodate.
+    """
+
+    stand_number = models.CharField(_("stand number"), max_length=10, unique=True)
+    terminal = models.CharField(_("terminal"), max_length=5, default="T1")
+    stand_type = models.CharField(
+        _("stand type"), max_length=10, choices=StandType.choices, default=StandType.CONTACT
+    )
+    max_aircraft_size = models.CharField(
+        _("max aircraft size"),
+        max_length=10,
+        choices=AircraftSizeCategory.choices,
+        default=AircraftSizeCategory.MEDIUM,
+        help_text=_("Maximum aircraft size this stand can accommodate"),
+    )
+    has_jetway = models.BooleanField(_("has jetway"), default=False)
+    has_gpu = models.BooleanField(
+        _("Ground Power Unit (GPU)"), default=False,
+        help_text=_("Provides ground electrical power to parked aircraft"),
+    )
+    has_pca = models.BooleanField(
+        _("Pre-Conditioned Air (PCA)"), default=False,
+        help_text=_("Provides climate-controlled air to parked aircraft"),
+    )
+    is_active = models.BooleanField(_("active"), default=True)
+    notes = models.TextField(_("notes"), blank=True)
+
+    class Meta:
+        verbose_name = _("aircraft stand")
+        verbose_name_plural = _("aircraft stands")
+        ordering = ["terminal", "stand_number"]
+        indexes = [models.Index(fields=["terminal", "is_active"])]
+
+    def __str__(self):
+        return f"Stand {self.stand_number} – Terminal {self.terminal}"
+
+    @property
+    def is_currently_occupied(self):
+        return self.parking_records.filter(
+            status=AircraftParkingRecord.Status.ACTIVE
+        ).exists()
+
+
+class AircraftParkingRate(TimeStampedModel):
+    """
+    Fee schedule for aircraft parking based on size category.
+
+    Set by airport management; used to auto-calculate charges when
+    an aircraft parking record is created or completed.
+    """
+
+    aircraft_size = models.CharField(
+        _("aircraft size category"),
+        max_length=10,
+        choices=AircraftSizeCategory.choices,
+        unique=True,
+    )
+    landing_fee = models.DecimalField(
+        _("landing fee (₦)"), max_digits=12, decimal_places=2, default=Decimal("0"),
+        help_text=_("One-time fee charged when aircraft lands"),
+    )
+    hourly_rate = models.DecimalField(
+        _("hourly parking rate (₦)"), max_digits=12, decimal_places=2, default=Decimal("0")
+    )
+    daily_rate = models.DecimalField(
+        _("daily parking rate (₦)"), max_digits=12, decimal_places=2, default=Decimal("0"),
+        help_text=_("Applied for stays exceeding 24 hours"),
+    )
+    weekly_rate = models.DecimalField(
+        _("weekly parking rate (₦)"), max_digits=12, decimal_places=2, default=Decimal("0"),
+        help_text=_("Applied for stays exceeding 7 days"),
+    )
+    gpu_hourly_rate = models.DecimalField(
+        _("GPU hourly rate (₦)"), max_digits=12, decimal_places=2, default=Decimal("0")
+    )
+    pca_hourly_rate = models.DecimalField(
+        _("PCA hourly rate (₦)"), max_digits=12, decimal_places=2, default=Decimal("0")
+    )
+    effective_from = models.DateField(_("effective from"), default=timezone.now)
+    effective_until = models.DateField(_("effective until"), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _("aircraft parking rate")
+        verbose_name_plural = _("aircraft parking rates")
+
+    def __str__(self):
+        return f"Rates for {self.get_aircraft_size_display()}"
+
+    def calculate_parking_fee(self, duration_hours: float) -> Decimal:
+        """Calculate parking fee based on total duration in hours."""
+        if duration_hours <= 0:
+            return Decimal("0")
+        duration = Decimal(str(duration_hours))
+        weeks = int(duration_hours // 168)
+        remaining = duration_hours % 168
+        days = int(remaining // 24)
+        hours = remaining % 24
+
+        fee = (
+            Decimal(weeks) * self.weekly_rate
+            + Decimal(days) * self.daily_rate
+            + Decimal(str(hours)) * self.hourly_rate
+        )
+        return fee.quantize(Decimal("0.01"))
+
+
+class AircraftParkingRecord(TimeStampedModel):
+    """
+    Records an aircraft's stay at a stand including calculated fees and payment status.
+
+    Airlines are billed for: landing fee + parking duration fee + ground services (GPU/PCA).
+    """
+
+    class Status(models.TextChoices):
+        SCHEDULED = "SCHEDULED", _("Scheduled")
+        ACTIVE = "ACTIVE", _("Active (On Stand)")
+        COMPLETED = "COMPLETED", _("Completed")
+        OVERDUE = "OVERDUE", _("Overdue – Unpaid")
+        CANCELLED = "CANCELLED", _("Cancelled")
+
+    record_number = models.CharField(
+        _("record number"), max_length=20, unique=True, editable=False
+    )
+    aircraft = models.ForeignKey(
+        Aircraft, on_delete=models.PROTECT, related_name="parking_records"
+    )
+    airline = models.ForeignKey(
+        Airline, on_delete=models.PROTECT, related_name="parking_records"
+    )
+    stand = models.ForeignKey(
+        AircraftStand, on_delete=models.PROTECT, related_name="parking_records"
+    )
+    aircraft_size = models.CharField(
+        _("aircraft size"), max_length=10, choices=AircraftSizeCategory.choices
+    )
+
+    # Timing
+    scheduled_arrival = models.DateTimeField(_("scheduled arrival"))
+    scheduled_departure = models.DateTimeField(_("scheduled departure"))
+    actual_arrival_time = models.DateTimeField(_("actual arrival"), null=True, blank=True)
+    actual_departure_time = models.DateTimeField(_("actual departure"), null=True, blank=True)
+
+    # Ground services
+    gpu_requested = models.BooleanField(_("GPU requested"), default=False)
+    pca_requested = models.BooleanField(_("PCA requested"), default=False)
+
+    # Fees (auto-calculated)
+    landing_fee = models.DecimalField(
+        _("landing fee (₦)"), max_digits=12, decimal_places=2, default=Decimal("0")
+    )
+    parking_fee = models.DecimalField(
+        _("parking fee (₦)"), max_digits=12, decimal_places=2, default=Decimal("0")
+    )
+    service_fee = models.DecimalField(
+        _("ground services fee (₦)"), max_digits=12, decimal_places=2, default=Decimal("0")
+    )
+    total_due = models.DecimalField(
+        _("total due (₦)"), max_digits=12, decimal_places=2, default=Decimal("0")
+    )
+
+    # Payment
+    is_paid = models.BooleanField(_("paid"), default=False)
+    payment_date = models.DateTimeField(_("payment date"), null=True, blank=True)
+    payment_reference = models.CharField(_("payment reference"), max_length=100, blank=True)
+    invoice_number = models.CharField(_("invoice number"), max_length=30, blank=True)
+
+    status = models.CharField(
+        _("status"), max_length=15, choices=Status.choices, default=Status.SCHEDULED
+    )
+    notes = models.TextField(_("notes"), blank=True)
+
+    class Meta:
+        verbose_name = _("aircraft parking record")
+        verbose_name_plural = _("aircraft parking records")
+        ordering = ["-scheduled_arrival"]
+        indexes = [
+            models.Index(fields=["airline", "status"]),
+            models.Index(fields=["stand", "status"]),
+            models.Index(fields=["is_paid"]),
+        ]
+
+    def __str__(self):
+        return f"{self.record_number} – {self.aircraft.registration} @ Stand {self.stand.stand_number}"
+
+    def save(self, *args, **kwargs):
+        if not self.record_number:
+            self.record_number = "APR-" + "".join(random.choices(string.digits, k=8))
+        super().save(*args, **kwargs)
+
+    @property
+    def duration_hours(self) -> float:
+        """Return duration in hours using actual times if available, else scheduled."""
+        start = self.actual_arrival_time or self.scheduled_arrival
+        end = self.actual_departure_time or self.scheduled_departure
+        if start and end and end > start:
+            return (end - start).total_seconds() / 3600
+        return 0.0
+
+    @property
+    def duration_display(self) -> str:
+        hours = self.duration_hours
+        days = int(hours // 24)
+        remaining_hours = int(hours % 24)
+        if days:
+            return f"{days}d {remaining_hours}h"
+        return f"{int(hours)}h"
+
+    def calculate_and_save_fees(self):
+        """Recalculate all fees based on current rates and save."""
+        try:
+            rate = AircraftParkingRate.objects.get(aircraft_size=self.aircraft_size)
+        except AircraftParkingRate.DoesNotExist:
+            return
+
+        self.landing_fee = rate.landing_fee
+        self.parking_fee = rate.calculate_parking_fee(self.duration_hours)
+
+        svc = Decimal("0")
+        if self.gpu_requested:
+            svc += rate.gpu_hourly_rate * Decimal(str(self.duration_hours))
+        if self.pca_requested:
+            svc += rate.pca_hourly_rate * Decimal(str(self.duration_hours))
+        self.service_fee = svc.quantize(Decimal("0.01"))
+        self.total_due = self.landing_fee + self.parking_fee + self.service_fee
+        self.save()

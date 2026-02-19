@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Airport Lounges – NAIA{% endblock %}
+
+{% block content %}
+<div class="relative text-white">
+    <div class="absolute inset-0">
+        <img src="{% static 'images/terminal.jpg' %}" alt="Lounges" class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-gradient-to-r from-amber-900/90 to-yellow-800/75"></div>
+    </div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative z-10">
+        <p class="text-amber-200 text-sm font-semibold uppercase tracking-widest mb-2">Premium Services</p>
+        <h1 class="text-4xl md:text-5xl font-bold mb-3">Airport Lounges</h1>
+        <p class="text-amber-100 text-lg max-w-xl">
+            Relax in comfort before your flight. Enjoy complimentary food, drinks, WiFi and more.
+            Day passes available to all travellers regardless of class of travel.
+        </p>
+    </div>
+</div>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for lounge in lounges %}
+        <div class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition group">
+            <div class="relative h-44 overflow-hidden">
+                {% if lounge.image %}
+                <img src="{{ lounge.image.url }}" alt="{{ lounge.name }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                {% else %}
+                <div class="w-full h-full bg-gradient-to-br from-amber-100 to-yellow-200 flex items-center justify-center">
+                    <span class="text-5xl">🛋️</span>
+                </div>
+                {% endif %}
+                <div class="absolute top-3 left-3">
+                    <span class="bg-white text-amber-700 text-xs font-bold px-2 py-1 rounded-lg shadow">{{ lounge.get_lounge_type_display }}</span>
+                </div>
+                <div class="absolute top-3 right-3">
+                    <span class="bg-amber-600 text-white text-xs font-semibold px-2 py-1 rounded-lg">Terminal {{ lounge.terminal }}</span>
+                </div>
+            </div>
+            <div class="p-5">
+                <h3 class="text-lg font-bold text-gray-800 mb-1">{{ lounge.name }}</h3>
+                <p class="text-xs text-gray-500 mb-2">📍 {{ lounge.location_description }} · Open {{ lounge.opening_time|time:"H:i" }}–{{ lounge.closing_time|time:"H:i" }}</p>
+                <p class="text-sm text-gray-600 mb-3 line-clamp-2">{{ lounge.description }}</p>
+
+                <!-- Amenities -->
+                <div class="flex flex-wrap gap-1 mb-4 text-xs">
+                    {% if lounge.has_wifi %}<span class="bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full">WiFi</span>{% endif %}
+                    {% if lounge.has_food %}<span class="bg-green-50 text-green-600 px-2 py-0.5 rounded-full">Food & Drinks</span>{% endif %}
+                    {% if lounge.has_shower %}<span class="bg-cyan-50 text-cyan-600 px-2 py-0.5 rounded-full">Shower</span>{% endif %}
+                    {% if lounge.has_spa %}<span class="bg-purple-50 text-purple-600 px-2 py-0.5 rounded-full">Spa</span>{% endif %}
+                    {% if lounge.has_business_centre %}<span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">Business Centre</span>{% endif %}
+                    {% if lounge.has_prayer_room %}<span class="bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-full">Prayer Room</span>{% endif %}
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs text-gray-400">Day Pass from</p>
+                        <p class="text-xl font-bold text-amber-700">₦{{ lounge.day_pass_price|floatformat:0 }}</p>
+                    </div>
+                    <a href="{% url 'lounge:book_lounge' lounge.pk %}"
+                       class="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition">
+                        Book Pass
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-3 py-20 text-center">
+            <span class="text-6xl">🛋️</span>
+            <p class="text-gray-400 text-lg mt-4">No lounges currently listed. Please check back soon.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

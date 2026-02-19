@@ -47,6 +47,8 @@ LOCAL_APPS = [
     "analytics.apps.AnalyticsConfig",
     "api.apps.ApiConfig",
     "parking.apps.ParkingConfig",
+    "hotels.apps.HotelsConfig",
+    "lounge.apps.LoungeConfig",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS

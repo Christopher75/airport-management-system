@@ -28,4 +28,9 @@ urlpatterns = [
 
     # Cancel booking
     path("cancel/<str:reference>/", views.CancelBookingView.as_view(), name="cancel"),
+
+    # Online Check-in
+    path("checkin/", views.OnlineCheckinStartView.as_view(), name="checkin_start"),
+    path("checkin/<str:reference>/verify/", views.OnlineCheckinVerifyView.as_view(), name="checkin_verify"),
+    path("checkin/<str:reference>/boarding-pass/", views.BoardingPassView.as_view(), name="boarding_pass"),
 ]

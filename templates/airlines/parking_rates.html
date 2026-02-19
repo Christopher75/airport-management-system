@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Aircraft Parking Rate Card – NAIA{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<div class="relative text-white">
+    <div class="absolute inset-0">
+        <img src="{% static 'images/airport2.jpg' %}" alt="Parking Rates" class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-gradient-to-r from-slate-900/90 to-blue-900/75"></div>
+    </div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 relative z-10">
+        <p class="text-blue-300 text-sm font-semibold uppercase tracking-widest mb-2">Official Tariff</p>
+        <h1 class="text-4xl font-bold mb-3">Aircraft Parking Rate Card</h1>
+        <p class="text-blue-100 max-w-2xl">Nnamdi Azikiwe International Airport charges aircraft parking fees based on ICAO size classification and duration of stay. All rates are in Nigerian Naira (₦).</p>
+    </div>
+</div>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+    <!-- Rate Table -->
+    <div class="bg-white rounded-xl shadow mb-10 overflow-hidden">
+        <div class="px-6 py-5 border-b border-gray-100">
+            <h2 class="text-xl font-bold text-gray-800">Fee Schedule by Aircraft Size</h2>
+            <p class="text-sm text-gray-500 mt-1">MTOW = Maximum Take-Off Weight</p>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-blue-700 text-white">
+                    <tr>
+                        <th class="px-5 py-3 text-left text-sm font-medium">Size Category</th>
+                        <th class="px-5 py-3 text-right text-sm font-medium">Landing Fee</th>
+                        <th class="px-5 py-3 text-right text-sm font-medium">Hourly Rate</th>
+                        <th class="px-5 py-3 text-right text-sm font-medium">Daily Rate</th>
+                        <th class="px-5 py-3 text-right text-sm font-medium">Weekly Rate</th>
+                        <th class="px-5 py-3 text-right text-sm font-medium">GPU /hr</th>
+                        <th class="px-5 py-3 text-right text-sm font-medium">PCA /hr</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for rate in rates %}
+                    <tr class="hover:bg-blue-50">
+                        <td class="px-5 py-4">
+                            <p class="font-semibold text-gray-800">{{ rate.get_aircraft_size_display }}</p>
+                        </td>
+                        <td class="px-5 py-4 text-right text-gray-700">₦{{ rate.landing_fee|floatformat:0 }}</td>
+                        <td class="px-5 py-4 text-right text-gray-700">₦{{ rate.hourly_rate|floatformat:0 }}</td>
+                        <td class="px-5 py-4 text-right text-gray-700">₦{{ rate.daily_rate|floatformat:0 }}</td>
+                        <td class="px-5 py-4 text-right text-gray-700">₦{{ rate.weekly_rate|floatformat:0 }}</td>
+                        <td class="px-5 py-4 text-right text-gray-600 text-sm">₦{{ rate.gpu_hourly_rate|floatformat:0 }}</td>
+                        <td class="px-5 py-4 text-right text-gray-600 text-sm">₦{{ rate.pca_hourly_rate|floatformat:0 }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="px-6 py-10 text-center text-gray-400">Rate schedule not yet configured. Contact airport administration.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Stands -->
+    <div class="bg-white rounded-xl shadow overflow-hidden mb-10">
+        <div class="px-6 py-5 border-b border-gray-100">
+            <h2 class="text-xl font-bold text-gray-800">Available Aircraft Stands</h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stand</th>
+                        <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase">Terminal</th>
+                        <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                        <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase">Max Size</th>
+                        <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase">Jetway</th>
+                        <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase">GPU</th>
+                        <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase">PCA</th>
+                        <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for stand in stands %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-5 py-3 font-bold text-gray-800">{{ stand.stand_number }}</td>
+                        <td class="px-5 py-3 text-gray-600">{{ stand.terminal }}</td>
+                        <td class="px-5 py-3 text-gray-600 text-sm">{{ stand.get_stand_type_display }}</td>
+                        <td class="px-5 py-3 text-gray-600 text-sm">{{ stand.get_max_aircraft_size_display }}</td>
+                        <td class="px-5 py-3 text-center">{% if stand.has_jetway %}✓{% else %}–{% endif %}</td>
+                        <td class="px-5 py-3 text-center">{% if stand.has_gpu %}✓{% else %}–{% endif %}</td>
+                        <td class="px-5 py-3 text-center">{% if stand.has_pca %}✓{% else %}–{% endif %}</td>
+                        <td class="px-5 py-3">
+                            {% if stand.is_currently_occupied %}
+                            <span class="text-xs px-2 py-1 bg-red-100 text-red-700 rounded-full font-medium">Occupied</span>
+                            {% else %}
+                            <span class="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full font-medium">Available</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="8" class="px-6 py-8 text-center text-gray-400">No stands configured.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Notes -->
+    <div class="bg-blue-50 border border-blue-200 rounded-xl p-6">
+        <h3 class="font-bold text-blue-800 mb-3">Important Notes</h3>
+        <ul class="text-sm text-blue-700 space-y-2 list-disc list-inside">
+            <li>All fees are payable in Nigerian Naira (₦) before aircraft departure.</li>
+            <li>Parking fees are calculated on actual departure time, not scheduled time.</li>
+            <li>Outstanding balances may result in aircraft hold until full settlement.</li>
+            <li>GPU and PCA services are billed per actual hours of use.</li>
+            <li>Weekly rates apply for stays exceeding 7 consecutive days.</li>
+            <li>Cargo and maintenance stands are subject to separate agreements.</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
