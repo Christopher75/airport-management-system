@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Book {{ vehicle.name }} | NAIA Taxis{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen py-10">
+    <div class="max-w-5xl mx-auto px-4">
+
+        <!-- Back link -->
+        <a href="{% url 'taxis:taxi_list' %}" class="inline-flex items-center gap-2 text-gray-500 hover:text-amber-600 text-sm mb-6">
+            <i class="fas fa-arrow-left"></i> Back to Vehicles
+        </a>
+
+        <h1 class="text-2xl font-bold text-gray-900 mb-6">
+            Book: <span class="text-amber-600">{{ vehicle.name }}</span>
+        </h1>
+
+        <div class="grid lg:grid-cols-3 gap-8">
+            <!-- Form -->
+            <div class="lg:col-span-2">
+                <form method="post" id="taxi-form">
+                    {% csrf_token %}
+
+                    <!-- Trip Type -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+                        <h2 class="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                            <i class="fas fa-route text-amber-500"></i> Trip Details
+                        </h2>
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div class="sm:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Trip Type</label>
+                                {{ form.trip_type }}
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Pickup Location *</label>
+                                {{ form.pickup_location }}
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Drop-off Location *</label>
+                                {{ form.dropoff_location }}
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Pickup Date &amp; Time *</label>
+                                {{ form.pickup_datetime }}
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">
+                                    Flight Number
+                                    <span class="text-gray-400 font-normal">(optional)</span>
+                                </label>
+                                {{ form.flight_number }}
+                                <p class="text-xs text-gray-400 mt-1">We'll monitor your flight for delays</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Passengers *</label>
+                                {{ form.num_passengers }}
+                                <p class="text-xs text-gray-400 mt-1">Max: {{ vehicle.max_passengers }}</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Luggage Bags</label>
+                                {{ form.num_luggage }}
+                                <p class="text-xs text-gray-400 mt-1">Max: {{ vehicle.max_luggage }}</p>
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">
+                                    Estimated Distance (km) *
+                                </label>
+                                {{ form.estimated_distance_km }}
+                                <p class="text-xs text-gray-400 mt-1">
+                                    Approximate distance from pickup to drop-off.
+                                    Abuja city centre is ~15 km from the airport.
+                                </p>
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Special Requests</label>
+                                {{ form.special_requests }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Passenger Info -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+                        <h2 class="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                            <i class="fas fa-user text-amber-500"></i> Passenger Details
+                        </h2>
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div class="sm:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
+                                {{ form.passenger_name }}
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                                {{ form.passenger_email }}
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Phone *</label>
+                                {{ form.passenger_phone }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form errors -->
+                    {% if form.errors %}
+                    <div class="bg-red-50 border border-red-200 rounded-xl p-4 mb-4">
+                        {% for field, errors in form.errors.items %}
+                            {% for error in errors %}
+                            <p class="text-sm text-red-700"><i class="fas fa-exclamation-circle mr-1"></i> {{ error }}</p>
+                            {% endfor %}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <button type="submit"
+                            class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-4 rounded-xl text-lg transition">
+                        <i class="fas fa-taxi mr-2"></i> Confirm Taxi Booking
+                    </button>
+                </form>
+            </div>
+
+            <!-- Sidebar: Price Summary -->
+            <div class="space-y-4">
+                <!-- Vehicle Card -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sticky top-24">
+                    <h3 class="font-semibold text-gray-900 mb-4">Price Summary</h3>
+
+                    <div class="flex items-center gap-3 mb-4 pb-4 border-b border-gray-100">
+                        <div class="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-taxi text-amber-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-gray-900">{{ vehicle.name }}</p>
+                            <p class="text-xs text-gray-500">{{ vehicle.max_passengers }} pax · {{ vehicle.max_luggage }} bags</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2 text-sm mb-4">
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">Rate per km</span>
+                            <span>₦{{ vehicle.price_per_km|floatformat:0 }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">Minimum fare</span>
+                            <span>₦{{ vehicle.minimum_fare|floatformat:0 }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">VAT</span>
+                            <span>{{ vat_rate }}%</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-amber-50 border border-amber-100 rounded-xl p-3 text-sm">
+                        <p class="text-amber-700 font-medium">Fare Estimate</p>
+                        <p class="text-gray-600 text-xs mt-1">
+                            Enter distance above to calculate. Final price is
+                            <strong>distance × ₦{{ vehicle.price_per_km|floatformat:0 }}</strong>
+                            or the minimum fare, whichever is higher, plus {{ vat_rate }}% VAT.
+                        </p>
+                    </div>
+
+                    <!-- Features -->
+                    {% if vehicle.features %}
+                    <div class="mt-4">
+                        <p class="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">Included</p>
+                        <div class="flex flex-wrap gap-1">
+                            {% for f in vehicle.features %}
+                            <span class="bg-green-50 text-green-700 text-xs px-2 py-0.5 rounded-full border border-green-100">
+                                <i class="fas fa-check mr-1 text-xs"></i>{{ f }}
+                            </span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Need Help -->
+                <div class="bg-white rounded-2xl border border-gray-100 p-5 text-sm text-gray-600">
+                    <p class="font-semibold text-gray-900 mb-1"><i class="fas fa-headset text-amber-500 mr-1"></i> Need Help?</p>
+                    <p>Call NAIA Taxi Desk:<br><a href="tel:+2340000000000" class="text-amber-600 font-medium">+234 000 000 0000</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

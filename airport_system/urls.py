@@ -59,6 +59,9 @@ urlpatterns = [
     # Airport Taxes & Levies
     path("taxes/", include("taxes.urls")),
 
+    # Airport Taxis & Transfers
+    path("taxis/", include("taxis.urls")),
+
     # Authentication (django-allauth)
     path("accounts/", include("allauth.urls")),
 

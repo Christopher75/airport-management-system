@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Airport Taxis & Transfers | NAIA{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<div class="bg-gradient-to-br from-yellow-500 to-amber-600 text-white py-14">
+    <div class="max-w-5xl mx-auto px-4 text-center">
+        <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-taxi text-3xl"></i>
+        </div>
+        <h1 class="text-4xl font-bold mb-3">Airport Taxis &amp; Transfers</h1>
+        <p class="text-white/90 text-lg max-w-2xl mx-auto">
+            Pre-book your airport taxi or private transfer. Fixed prices, professional drivers,
+            and guaranteed on-time pickup — no haggling at the terminal.
+        </p>
+    </div>
+</div>
+
+<!-- Why Book With Us -->
+<div class="bg-white py-10 border-b border-gray-100">
+    <div class="max-w-5xl mx-auto px-4 grid sm:grid-cols-4 gap-6 text-center">
+        <div>
+            <div class="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                <i class="fas fa-tag text-amber-600"></i>
+            </div>
+            <p class="font-semibold text-gray-900 text-sm">Fixed Price</p>
+            <p class="text-xs text-gray-500">No meter surprises</p>
+        </div>
+        <div>
+            <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                <i class="fas fa-shield-alt text-green-600"></i>
+            </div>
+            <p class="font-semibold text-gray-900 text-sm">Safe & Licensed</p>
+            <p class="text-xs text-gray-500">All drivers verified</p>
+        </div>
+        <div>
+            <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                <i class="fas fa-plane-arrival text-blue-600"></i>
+            </div>
+            <p class="font-semibold text-gray-900 text-sm">Flight Tracking</p>
+            <p class="text-xs text-gray-500">Driver waits for delays</p>
+        </div>
+        <div>
+            <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                <i class="fas fa-receipt text-purple-600"></i>
+            </div>
+            <p class="font-semibold text-gray-900 text-sm">Instant Confirmation</p>
+            <p class="text-xs text-gray-500">Booking ref by email</p>
+        </div>
+    </div>
+</div>
+
+<!-- Vehicle Cards -->
+<div class="bg-gray-50 py-12">
+    <div class="max-w-6xl mx-auto px-4">
+        <h2 class="text-2xl font-bold text-gray-900 mb-2">Choose Your Vehicle</h2>
+        <p class="text-gray-500 mb-8">Select the vehicle that best suits your party size and budget.</p>
+
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for vehicle in vehicles %}
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition flex flex-col">
+                <!-- Image / Icon -->
+                <div class="h-44 bg-gradient-to-br from-amber-50 to-yellow-100 flex items-center justify-center">
+                    {% if vehicle.image %}
+                        <img src="{{ vehicle.image.url }}" alt="{{ vehicle.name }}" class="h-36 object-contain">
+                    {% else %}
+                        {% if vehicle.vehicle_type == 'SEDAN' %}
+                            <i class="fas fa-car text-6xl text-amber-400"></i>
+                        {% elif vehicle.vehicle_type == 'SUV' %}
+                            <i class="fas fa-truck-pickup text-6xl text-amber-500"></i>
+                        {% elif vehicle.vehicle_type == 'LUXURY' %}
+                            <i class="fas fa-car-side text-6xl text-gray-600"></i>
+                        {% elif vehicle.vehicle_type == 'MINIVAN' %}
+                            <i class="fas fa-shuttle-van text-6xl text-blue-500"></i>
+                        {% else %}
+                            <i class="fas fa-bus text-6xl text-green-500"></i>
+                        {% endif %}
+                    {% endif %}
+                </div>
+
+                <div class="p-5 flex flex-col flex-1">
+                    <!-- Title & type -->
+                    <div class="flex items-start justify-between mb-2">
+                        <div>
+                            <h3 class="font-bold text-gray-900 text-lg">{{ vehicle.name }}</h3>
+                            <p class="text-xs text-gray-500">{{ vehicle.get_vehicle_type_display }}</p>
+                        </div>
+                        <span class="bg-amber-100 text-amber-700 text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap">
+                            ₦{{ vehicle.price_per_km|floatformat:0 }}/km
+                        </span>
+                    </div>
+
+                    <!-- Capacity -->
+                    <div class="flex gap-4 text-sm text-gray-600 mb-3">
+                        <span><i class="fas fa-users mr-1 text-amber-500"></i> {{ vehicle.max_passengers }} passengers</span>
+                        <span><i class="fas fa-suitcase mr-1 text-amber-500"></i> {{ vehicle.max_luggage }} bags</span>
+                    </div>
+
+                    <!-- Description -->
+                    {% if vehicle.description %}
+                    <p class="text-sm text-gray-600 mb-3 flex-1">{{ vehicle.description }}</p>
+                    {% endif %}
+
+                    <!-- Features -->
+                    {% if vehicle.features %}
+                    <div class="flex flex-wrap gap-1 mb-4">
+                        {% for feature in vehicle.features %}
+                        <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full">{{ feature }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Pricing -->
+                    <div class="bg-amber-50 border border-amber-100 rounded-xl p-3 mb-4 text-sm">
+                        <div class="flex justify-between mb-1">
+                            <span class="text-gray-600">Starting from</span>
+                            <span class="font-bold text-amber-700">₦{{ vehicle.minimum_fare|floatformat:0 }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Per km</span>
+                            <span class="font-semibold text-gray-900">₦{{ vehicle.price_per_km|floatformat:0 }}</span>
+                        </div>
+                    </div>
+
+                    <a href="{% url 'taxis:book_taxi' vehicle.slug %}"
+                       class="block bg-amber-500 hover:bg-amber-600 text-white text-center font-semibold py-3 rounded-xl transition">
+                        Book This Vehicle
+                    </a>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-span-3 bg-white rounded-2xl p-12 text-center border border-gray-100">
+                <i class="fas fa-taxi text-gray-300 text-5xl mb-4"></i>
+                <p class="text-gray-500">No vehicles available at the moment. Please check back soon.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- How It Works -->
+<div class="bg-white py-12">
+    <div class="max-w-4xl mx-auto px-4 text-center">
+        <h2 class="text-2xl font-bold text-gray-900 mb-8">How It Works</h2>
+        <div class="grid sm:grid-cols-4 gap-6">
+            {% for step in "1234" %}
+            <div class="text-center">
+                <div class="w-10 h-10 bg-amber-500 text-white rounded-full flex items-center justify-center font-bold text-lg mx-auto mb-3">{{ step }}</div>
+                {% if step == '1' %}<p class="font-semibold text-gray-900 text-sm">Choose Vehicle</p><p class="text-xs text-gray-500 mt-1">Select the vehicle that suits your needs</p>
+                {% elif step == '2' %}<p class="font-semibold text-gray-900 text-sm">Enter Details</p><p class="text-xs text-gray-500 mt-1">Pickup, drop-off, date and time</p>
+                {% elif step == '3' %}<p class="font-semibold text-gray-900 text-sm">Confirm Booking</p><p class="text-xs text-gray-500 mt-1">Get your booking reference instantly</p>
+                {% else %}<p class="font-semibold text-gray-900 text-sm">Driver Picks You Up</p><p class="text-xs text-gray-500 mt-1">Relax — your driver will be waiting</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
