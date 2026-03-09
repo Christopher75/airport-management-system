@@ -43,6 +43,20 @@ class Command(BaseCommand):
         "corporate-shuttle-bus": "CorporateShuttleBus.jpg",
     }
 
+    # mapping: (hotel_slug, room_name_exact) -> image filename
+    ROOM_IMAGES = {
+        ("sheraton-abuja",              "Deluxe King Room"):       "Deluxe King Room.jpg",
+        ("sheraton-abuja",              "Executive Suite"):        "Executive Suite.jpg",
+        ("sheraton-abuja",              "Deluxe Twin Room"):       "Deluxe Twin Room.jpg",
+        ("transcorp-hilton-abuja",      "Standard Queen Room"):    "Standard Queen Room.jpg",
+        ("transcorp-hilton-abuja",      "Executive King Room"):    "Executive King Room.jpg",
+        ("transcorp-hilton-abuja",      "Presidential Suite"):     "Presidential Suite.jpg",
+        ("naia-airport-transit-hotel",  "Transit Standard Room"):  "Transit Standard Room.jpg",
+        ("naia-airport-transit-hotel",  "Family Room"):            "Family Room.jpg",
+        ("radisson-blu-anchorage-abuja","Superior King Room"):     "Superior King Room.jpg",
+        ("radisson-blu-anchorage-abuja","Business Class Room"):    "Business Class Room.jpg",
+    }
+
     def handle(self, *args, **options):
         # Root paths
         static_img = Path(settings.BASE_DIR) / "static" / "images"
@@ -51,6 +65,7 @@ class Command(BaseCommand):
         self._assign_hotels(static_img, media_root)
         self._assign_lounges(static_img, media_root)
         self._assign_taxis(static_img, media_root)
+        self._assign_rooms(static_img, media_root)
 
         self.stdout.write(self.style.SUCCESS("All images assigned successfully!"))
 
@@ -123,3 +138,26 @@ class Command(BaseCommand):
                 self.stdout.write(f"  Taxi: {vehicle.name}")
                 count += 1
         self.stdout.write(self.style.SUCCESS(f"  OK: {count} taxi vehicle images assigned"))
+
+    # ------------------------------------------------------------------
+    def _assign_rooms(self, static_img, media_root):
+        from hotels.models import Hotel, RoomType
+        dest_dir = media_root / "hotels" / "rooms"
+        count = 0
+        for (hotel_slug, room_name), filename in self.ROOM_IMAGES.items():
+            try:
+                hotel = Hotel.objects.get(slug=hotel_slug)
+                room  = RoomType.objects.get(hotel=hotel, name=room_name)
+            except Hotel.DoesNotExist:
+                self.stdout.write(self.style.WARNING(f"  [SKIP] Hotel not found: {hotel_slug}"))
+                continue
+            except RoomType.DoesNotExist:
+                self.stdout.write(self.style.WARNING(f"  [SKIP] Room not found: {room_name}"))
+                continue
+            rel_path = self._copy(static_img, dest_dir, filename)
+            if rel_path:
+                room.image = rel_path
+                room.save(update_fields=["image"])
+                self.stdout.write(f"  Room: {hotel.name} — {room.name}")
+                count += 1
+        self.stdout.write(self.style.SUCCESS(f"  OK: {count} room images assigned"))
